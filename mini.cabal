@@ -1,0 +1,13 @@
+name: mini
+version: 0.1
+synopsis: Toy programing language interpreter
+author: Sergey Zaretsky
+build-type: Simple
+cabal-version: >= 1.2
+
+executable mini
+    main-is: Mini.hs
+    hs-source-dirs: src
+    build-depends: base, parsec, pretty-show
+    extensions: PatternGuards
+    ghc-options: -Wall -fno-warn-unused-do-bind -O0
