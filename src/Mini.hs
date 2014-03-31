@@ -1,6 +1,13 @@
 import System.Environment
 
+import Text.Show.Pretty
+
+import Lexing.Lexer
 
 main :: IO ()
 main = do
-    putStrLn "mini interpreter"
+    args <- getArgs
+    if null args
+        then putStrLn "No input provided"
+        else do
+            putStrLn $ ppShow $ tokenize $ head args
