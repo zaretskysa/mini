@@ -8,9 +8,7 @@ import Text.ParserCombinators.Parsec
 import Lexing.Token
 
 punctuator :: Parser Token
-punctuator = do
-    p <- punctuator'
-    return $ PunctuatorToken p
+punctuator = punctuator' >>= return . PunctuatorToken
 
 punctuator' :: Parser Punctuator
 punctuator' = do
@@ -33,5 +31,5 @@ division :: Parser Punctuator
 division = char '/' >> return DivPunctuator
 
 assign :: Parser Punctuator
-assign = char '/' >> return AssignPunctuator
+assign = char '=' >> return AssignPunctuator
 
