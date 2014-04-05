@@ -43,11 +43,11 @@ identifier = do
         IdentifierToken ident -> return ident
         _ -> fail "identified token"
 
-numericLiteral :: TokenParser Integer
+numericLiteral :: TokenParser Double
 numericLiteral = do
     tok <- anyToken
     case tok of
-        NumericLiteralToken int -> return int
+        NumericLiteralToken num -> return num
         _ -> fail "numeric literal token"
 
 anyPunctuator :: TokenParser Punctuator

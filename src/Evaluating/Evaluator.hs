@@ -7,19 +7,19 @@ module Evaluating.Evaluator
 import Parsing.Ast
 import Parsing.Parser
 
-evalString :: String -> Integer
+evalString :: String -> Double
 evalString input = case parseString input of
     Left _ -> -1
     Right prog -> evalProgram prog
 
-evalProgram :: Program -> Integer
+evalProgram :: Program -> Double
 evalProgram (Program [stmt]) = evalStatement stmt
 evalProgram _ = -1
 
-evalStatement :: Statement -> Integer
+evalStatement :: Statement -> Double
 evalStatement (ExpressionStatement expr) = evalExpression expr
 
-evalExpression :: Expression -> Integer
+evalExpression :: Expression -> Double
 evalExpression (UnaryExpression mult) = evalMultExpression mult
 evalExpression (PlusExpression expr mult) = 
     let r1 = evalExpression expr
@@ -30,11 +30,11 @@ evalExpression (MinusExpression expr mult) =
         r2 = evalMultExpression mult
     in r1 - r2
 
-evalMultExpression :: MultExpression -> Integer
+evalMultExpression :: MultExpression -> Double
 evalMultExpression (UnaryMultExpression num) = num
 evalMultExpression (MultMultExpression mult num) = 
     let r1 = evalMultExpression mult
     in r1 * num
 evalMultExpression (DivMultExpression mult num) = 
     let r1 = evalMultExpression mult
-    in r1 
+    in r1 / num

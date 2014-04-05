@@ -13,7 +13,7 @@ data Expression =
     deriving (Show, Eq)
 
 data MultExpression =
-      UnaryMultExpression Integer
-    | MultMultExpression MultExpression Integer
-    | DivMultExpression MultExpression Integer
+      UnaryMultExpression Double
+    | MultMultExpression MultExpression Double
+    | DivMultExpression MultExpression Double
     deriving (Show, Eq)

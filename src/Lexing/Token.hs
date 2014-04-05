@@ -6,7 +6,7 @@ module Lexing.Token
 ) where
 
 data Token = 
-      NumericLiteralToken Integer
+      NumericLiteralToken Double
     | IdentifierToken String
     | PunctuatorToken Punctuator
     | KeywordToken Keyword
