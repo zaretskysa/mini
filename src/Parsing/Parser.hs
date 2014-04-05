@@ -34,6 +34,7 @@ expression = do
     left <- unaryExpression
     restOfExpression left
 
+--TODO: try to use 'chainl' combinator to deal with left recursion
 restOfExpression :: Expression -> TokenParser Expression
 restOfExpression left = do
     (try $ restOfPlusExpression left)

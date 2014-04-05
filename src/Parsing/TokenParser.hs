@@ -28,6 +28,7 @@ anyToken = P.token showTok posFromTok testTok
         posFromTok _tok = newPos "" 0 0
         testTok t = Just t
 
+--TODO: rewrite with 'satisfy' combinator
 token :: Token -> TokenParser Token
 token tok = do
     tok2 <- anyToken
