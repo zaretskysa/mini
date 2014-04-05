@@ -4,7 +4,8 @@ module Parsing.Parser
     parseString
 ) where
 
-import Text.ParserCombinators.Parsec (ParseError, eof)
+import Text.ParserCombinators.Parsec (ParseError)
+import Text.ParserCombinators.Parsec.Combinator
 import Text.ParserCombinators.Parsec.Prim hiding (token)
 
 import Lexing.Token
@@ -22,12 +23,24 @@ parseString input = case tokenize input of
 
 program :: TokenParser Program
 program = do
-    stmts <- many statement 
+    stmts <- sepBy statement (punctuator SemicolonPunctuator)
+    --punctuator SemicolonPunctuator
     eof
     return $ Program stmts
 
 statement :: TokenParser Statement
-statement = expression >>= return . ExpressionStatement
+statement = expressionStatement <|> varDeclStatement
+
+expressionStatement :: TokenParser Statement
+expressionStatement = expression >>= return . ExpressionStatement
+
+varDeclStatement :: TokenParser Statement
+varDeclStatement = do
+    keyword VarKeyword
+    varName <- identifier
+    punctuator AssignPunctuator
+    expr <- expression
+    return $ VarDeclStatement varName expr
 
 expression :: TokenParser Expression
 expression = do

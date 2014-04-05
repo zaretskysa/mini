@@ -17,6 +17,7 @@ punctuator' = do
     <|> mult
     <|> division
     <|> assign
+    <|> semicolon
 
 plus :: Parser Punctuator
 plus = char '+' >> return PlusPunctuator
@@ -33,3 +34,5 @@ division = char '/' >> return DivPunctuator
 assign :: Parser Punctuator
 assign = char '=' >> return AssignPunctuator
 
+semicolon :: Parser Punctuator
+semicolon = char ';' >> return SemicolonPunctuator

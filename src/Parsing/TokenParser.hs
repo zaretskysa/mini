@@ -37,14 +37,14 @@ token tok = do
         else P.unexpected $ show tok2
 
 identifier :: TokenParser String
-identifier = do
+identifier = try $ do
     tok <- anyToken
     case tok of
         IdentifierToken ident -> return ident
         _ -> fail "identified token"
 
 numericLiteral :: TokenParser Double
-numericLiteral = do
+numericLiteral = try $ do
     tok <- anyToken
     case tok of
         NumericLiteralToken num -> return num

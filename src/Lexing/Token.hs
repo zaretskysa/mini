@@ -18,6 +18,7 @@ data Punctuator =
     | MultPunctuator
     | DivPunctuator
     | AssignPunctuator
+    | SemicolonPunctuator
     deriving (Show, Eq)
 
 data Keyword =
