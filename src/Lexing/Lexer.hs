@@ -23,7 +23,7 @@ tokens = do
 
 token :: Parser Token
 token = 
-        numericLiteral
+    numericLiteral
     <|> try identifier
     <|> keyword
     <|> punctuator
