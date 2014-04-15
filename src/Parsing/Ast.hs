@@ -4,19 +4,28 @@ data Program = Program [Statement]
     deriving (Show, Eq)
 
 data Statement = 
-      ExpressionStatement Expression
-    | VarDeclStatement String Expression
+      ExpressionStatement AssignmentExpression
+    | VarDeclStatement String AdditiveExpression
     deriving (Show, Eq)
 
-data Expression =
+data AssignmentExpression = 
+      AdditiveAssignmentExpression AdditiveExpression
+    | AssignmentOperatorExpression String AdditiveExpression
+    deriving (Show, Eq)
+
+data AdditiveExpression =
       UnaryExpression MultExpression
-    | PlusExpression Expression MultExpression
-    | MinusExpression Expression MultExpression
-    -- | FakeExpression
+    | PlusExpression AdditiveExpression MultExpression
+    | MinusExpression AdditiveExpression MultExpression
     deriving (Show, Eq)
 
 data MultExpression =
-      UnaryMultExpression Double
-    | MultMultExpression MultExpression Double
-    | DivMultExpression MultExpression Double
+      UnaryMultExpression AccessExpression
+    | MultMultExpression MultExpression AccessExpression
+    | DivMultExpression MultExpression AccessExpression
+    deriving (Show, Eq)
+
+data AccessExpression = 
+      DoubleAccessExpression Double
+    | IdentAccessExpression String
     deriving (Show, Eq)

@@ -14,44 +14,63 @@ import qualified Evaluating.HeapM as H
 
 type BinaryOperator = Double -> Double -> Double
 
-evalString :: String -> Double
+evalString :: String -> Maybe Double
 evalString input = case parseString input of
-    Left _ -> -1
+    Left _ -> Nothing
     Right prog -> eval prog
 
-eval :: Program -> Double
+eval :: Program -> Maybe Double
 eval program = 
     let (result, heap) = runEval $ evalProgram program
     in traceShow heap result
 
-evalProgram :: Program -> Eval Double
-evalProgram (Program [stmt]) = evalStatement stmt
-evalProgram _ = return $ -1
+evalProgram :: Program -> Eval (Maybe Double)
+evalProgram (Program []) = return Nothing
+evalProgram (Program stmts) = do
+    results <- mapM evalStatement stmts
+    return $ last results
 
-evalStatement :: Statement -> Eval Double
-evalStatement (ExpressionStatement expr) = evalExpression expr
+evalStatement :: Statement -> Eval (Maybe Double)
+evalStatement (ExpressionStatement expr) = do
+    value <- evalAssignmentExpression expr
+    return $ Just value
 evalStatement (VarDeclStatement varName expr) = do
-    value <- evalExpression expr
+    value <- evalAddiitiveExpression expr
+    H.insert varName value
+    return $ Just value
+
+evalAssignmentExpression :: AssignmentExpression -> Eval Double
+evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAddiitiveExpression expr
+evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
+    value <- evalAddiitiveExpression expr
     H.insert varName value
     return value
 
-evalExpression :: Expression -> Eval Double
-evalExpression (UnaryExpression mult) = evalMultExpression mult
-evalExpression (PlusExpression expr mult) = evalBinaryExpr expr mult (+)
-evalExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-)
+evalAddiitiveExpression :: AdditiveExpression -> Eval Double
+evalAddiitiveExpression (UnaryExpression mult) = evalMultExpression mult
+evalAddiitiveExpression (PlusExpression expr mult) = evalBinaryExpr expr mult (+)
+evalAddiitiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-)
 
-evalBinaryExpr :: Expression -> MultExpression -> BinaryOperator -> Eval Double
+evalBinaryExpr :: AdditiveExpression -> MultExpression -> BinaryOperator -> Eval Double
 evalBinaryExpr expr mult op = do 
-    left <- evalExpression expr
+    left <- evalAddiitiveExpression expr
     right <- evalMultExpression mult
     return $ left `op` right
 
 evalMultExpression :: MultExpression -> Eval Double
-evalMultExpression (UnaryMultExpression num) = return num
-evalMultExpression (MultMultExpression mult num) = evalBinaryMultExpr mult num (*)
-evalMultExpression (DivMultExpression mult num) = evalBinaryMultExpr mult num (/)
+evalMultExpression (UnaryMultExpression acc) = evalAccessExpression acc
+evalMultExpression (MultMultExpression mult acc) = evalBinaryMultExpr mult acc (*)
+evalMultExpression (DivMultExpression mult acc) = evalBinaryMultExpr mult acc (/)
 
-evalBinaryMultExpr :: MultExpression -> Double -> BinaryOperator -> Eval Double
-evalBinaryMultExpr mult num op = do 
+evalBinaryMultExpr :: MultExpression -> AccessExpression -> BinaryOperator -> Eval Double
+evalBinaryMultExpr mult acc op = do
     left <- evalMultExpression mult
-    return $ left `op` num
+    right <- evalAccessExpression acc
+    return $ left `op` right
+
+evalAccessExpression :: AccessExpression -> Eval Double
+evalAccessExpression (DoubleAccessExpression num) = return num
+evalAccessExpression (IdentAccessExpression ident) = do
+    Just val <- H.lookup ident
+    return val
+

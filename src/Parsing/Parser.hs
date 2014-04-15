@@ -8,6 +8,7 @@ import Text.ParserCombinators.Parsec (ParseError)
 import Text.ParserCombinators.Parsec.Combinator
 import Text.ParserCombinators.Parsec.Prim hiding (token)
 
+import Debug
 import Lexing.Token
 import Lexing.Lexer
 import Parsing.Ast
@@ -32,41 +33,57 @@ statement :: TokenParser Statement
 statement = expressionStatement <|> varDeclStatement
 
 expressionStatement :: TokenParser Statement
-expressionStatement = expression >>= return . ExpressionStatement
+expressionStatement = assignmentExpression >>= return . ExpressionStatement
+
+assignmentExpression :: TokenParser AssignmentExpression
+assignmentExpression = 
+    try assignmentOperatorExpression 
+    <|> additiveAssignmentExpression
+
+additiveAssignmentExpression :: TokenParser AssignmentExpression
+additiveAssignmentExpression = additiveExpression >>= return . AdditiveAssignmentExpression
+
+assignmentOperatorExpression :: TokenParser AssignmentExpression
+assignmentOperatorExpression = do
+    varName <- identifier
+    punctuator AssignPunctuator
+    expr <- additiveExpression
+    return $ AssignmentOperatorExpression varName expr
+
 
 varDeclStatement :: TokenParser Statement
 varDeclStatement = do
     keyword VarKeyword
     varName <- identifier
     punctuator AssignPunctuator
-    expr <- expression
+    expr <- additiveExpression
     return $ VarDeclStatement varName expr
 
-expression :: TokenParser Expression
-expression = do
+additiveExpression :: TokenParser AdditiveExpression
+additiveExpression = do
     left <- unaryExpression
     restOfExpression left
 
 --TODO: try to use 'chainl' combinator to deal with left recursion
-restOfExpression :: Expression -> TokenParser Expression
+restOfExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfExpression left = do
     (try $ restOfPlusExpression left)
     <|> (try $ restOfMinusExpression left)
     <|> return left
 
-restOfPlusExpression :: Expression -> TokenParser Expression
+restOfPlusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfPlusExpression left = do
     punctuator PlusPunctuator
     mult <- multExpression
     restOfExpression $ PlusExpression left mult
 
-restOfMinusExpression :: Expression -> TokenParser Expression
+restOfMinusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfMinusExpression left = do
     punctuator MinusPunctuator
     mult <- multExpression
     restOfExpression $ MinusExpression left mult
 
-unaryExpression :: TokenParser Expression
+unaryExpression :: TokenParser AdditiveExpression
 unaryExpression = multExpression >>= return . UnaryExpression
 
 multExpression :: TokenParser MultExpression
@@ -75,7 +92,7 @@ multExpression = do
     restOfMultExpression left
 
 unaryMultExpression :: TokenParser MultExpression
-unaryMultExpression = numericLiteral >>= return . UnaryMultExpression
+unaryMultExpression = accessExpression >>= return . UnaryMultExpression
 
 restOfMultExpression :: MultExpression -> TokenParser MultExpression
 restOfMultExpression left = do
@@ -86,11 +103,17 @@ restOfMultExpression left = do
 restOfMultMultExpression :: MultExpression -> TokenParser MultExpression
 restOfMultMultExpression left = do
     punctuator MultPunctuator
-    num <- numericLiteral
-    restOfMultExpression $ MultMultExpression left num
+    acc <- accessExpression
+    restOfMultExpression $ MultMultExpression left acc
 
 restOfDivMultExpression :: MultExpression -> TokenParser MultExpression
 restOfDivMultExpression left = do
     punctuator DivPunctuator
-    num <- numericLiteral
-    restOfMultExpression $ DivMultExpression left num
+    acc <- accessExpression
+    restOfMultExpression $ DivMultExpression left acc
+
+accessExpression :: TokenParser AccessExpression
+accessExpression = do
+    (numericLiteral >>= return . DoubleAccessExpression)
+    <|> (identifier >>= return . IdentAccessExpression)
+
