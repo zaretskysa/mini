@@ -12,12 +12,15 @@ keyword :: Parser Token
 keyword = keyword' >>= return . KeywordToken 
 
 keyword' :: Parser Keyword
-keyword' = var
+keyword' = var <|> function
 
 var :: Parser Keyword
 var = string "var" >> return VarKeyword
 
+function :: Parser Keyword
+function = string "function" >> return FunctionKeyword
+
 isKeyword :: String -> Bool
 isKeyword str = elem str keywords
-    where keywords = ["var"]
+    where keywords = ["var", "function"]
 

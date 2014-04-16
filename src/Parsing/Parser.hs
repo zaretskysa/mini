@@ -4,15 +4,16 @@ module Parsing.Parser
     parseString
 ) where
 
+import Control.Applicative ((<*))
 import Text.ParserCombinators.Parsec (ParseError)
-import Text.ParserCombinators.Parsec.Combinator
 import Text.ParserCombinators.Parsec.Prim hiding (token)
 
-import Debug
 import Lexing.Token
 import Lexing.Lexer
 import Parsing.Ast
 import Parsing.TokenParser
+import Parsing.Punctuator
+import Parsing.Keyword
 
 parseTokens :: [Token] -> Either ParseError Program
 parseTokens input = runParser program () "tokens parser" input
@@ -24,16 +25,32 @@ parseString input = case tokenize input of
 
 program :: TokenParser Program
 program = do
-    stmts <- sepBy statement (punctuator SemicolonPunctuator)
-    --punctuator SemicolonPunctuator
-    eof
-    return $ Program stmts
+    srcElements <- many sourceElement
+    return $ Program srcElements
+
+sourceElement :: TokenParser SourceElement
+sourceElement = statementSourceElement <|> functionDeclSourceElement
+
+statementSourceElement :: TokenParser SourceElement
+statementSourceElement = statement >>= return . StatementSourceElement
+
+functionDeclSourceElement :: TokenParser SourceElement
+functionDeclSourceElement = do
+    name <- function >> identifier
+    params <- parens $ sepByComma identifier
+    body <- braces functionBody
+    return $ FunctionDeclSourceElement name params body
+
+functionBody :: TokenParser FunctionBody
+functionBody = many sourceElement >>= return . FunctionBody
 
 statement :: TokenParser Statement
 statement = expressionStatement <|> varDeclStatement
 
 expressionStatement :: TokenParser Statement
-expressionStatement = assignmentExpression >>= return . ExpressionStatement
+expressionStatement = do
+    ass <- assignmentExpression <* semicolon
+    return $ ExpressionStatement ass
 
 assignmentExpression :: TokenParser AssignmentExpression
 assignmentExpression = 
@@ -41,22 +58,19 @@ assignmentExpression =
     <|> additiveAssignmentExpression
 
 additiveAssignmentExpression :: TokenParser AssignmentExpression
-additiveAssignmentExpression = additiveExpression >>= return . AdditiveAssignmentExpression
+additiveAssignmentExpression = 
+    additiveExpression >>= return . AdditiveAssignmentExpression
 
 assignmentOperatorExpression :: TokenParser AssignmentExpression
 assignmentOperatorExpression = do
     varName <- identifier
-    punctuator AssignPunctuator
-    expr <- additiveExpression
+    expr <- assign >> additiveExpression
     return $ AssignmentOperatorExpression varName expr
-
 
 varDeclStatement :: TokenParser Statement
 varDeclStatement = do
-    keyword VarKeyword
-    varName <- identifier
-    punctuator AssignPunctuator
-    expr <- additiveExpression
+    varName <- var >> identifier
+    expr <- assign >> additiveExpression
     return $ VarDeclStatement varName expr
 
 additiveExpression :: TokenParser AdditiveExpression
@@ -73,14 +87,12 @@ restOfExpression left = do
 
 restOfPlusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfPlusExpression left = do
-    punctuator PlusPunctuator
-    mult <- multExpression
+    mult <- plus >> multExpression
     restOfExpression $ PlusExpression left mult
 
 restOfMinusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfMinusExpression left = do
-    punctuator MinusPunctuator
-    mult <- multExpression
+    mult <- minus >> multExpression
     restOfExpression $ MinusExpression left mult
 
 unaryAdditiveExpression :: TokenParser AdditiveExpression
@@ -102,18 +114,15 @@ restOfMultExpression left = do
 
 restOfMultMultExpression :: MultExpression -> TokenParser MultExpression
 restOfMultMultExpression left = do
-    punctuator MultPunctuator
-    acc <- accessExpression
+    acc <- multiplication >> accessExpression
     restOfMultExpression $ MultMultExpression left acc
 
 restOfDivMultExpression :: MultExpression -> TokenParser MultExpression
 restOfDivMultExpression left = do
-    punctuator DivPunctuator
-    acc <- accessExpression
+    acc <- division >> accessExpression
     restOfMultExpression $ DivMultExpression left acc
 
 accessExpression :: TokenParser AccessExpression
 accessExpression = do
     (numericLiteral >>= return . DoubleAccessExpression)
     <|> (identifier >>= return . IdentAccessExpression)
-

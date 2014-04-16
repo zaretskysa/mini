@@ -12,27 +12,14 @@ punctuator = punctuator' >>= return . PunctuatorToken
 
 punctuator' :: Parser Punctuator
 punctuator' = do
-        plus
-    <|> minus
-    <|> mult
-    <|> division
-    <|> assign
-    <|> semicolon
-
-plus :: Parser Punctuator
-plus = char '+' >> return PlusPunctuator
-
-minus :: Parser Punctuator
-minus = char '-' >> return MinusPunctuator
-
-mult :: Parser Punctuator
-mult = char '*' >> return MultPunctuator
-
-division :: Parser Punctuator
-division = char '/' >> return DivPunctuator
-
-assign :: Parser Punctuator
-assign = char '=' >> return AssignPunctuator
-
-semicolon :: Parser Punctuator
-semicolon = char ';' >> return SemicolonPunctuator
+        (char '+' >> return PlusPunctuator)
+    <|> (char '-' >> return MinusPunctuator)
+    <|> (char '*' >> return MultPunctuator)
+    <|> (char '/' >> return DivPunctuator)
+    <|> (char '=' >> return AssignPunctuator)
+    <|> (char ';' >> return SemicolonPunctuator)
+    <|> (char ',' >> return CommaPunctuator)
+    <|> (char '(' >> return OpenParenPunctuator)
+    <|> (char ')' >> return CloseParenPunctuator)
+    <|> (char '{' >> return OpenBracePunctuator)
+    <|> (char '}' >> return CloseBracePunctuator)

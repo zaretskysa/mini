@@ -7,6 +7,7 @@ module Evaluating.Evaluator
 import Debug.Trace
 import Prelude hiding (lookup)
 
+--import Debug
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -26,9 +27,13 @@ eval program =
 
 evalProgram :: Program -> Eval (Maybe Double)
 evalProgram (Program []) = return Nothing
-evalProgram (Program stmts) = do
-    results <- mapM evalStatement stmts
+evalProgram (Program elements) = do
+    results <- mapM evalSourceElement elements
     return $ last results
+
+evalSourceElement :: SourceElement -> Eval (Maybe Double)
+evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
+evalSourceElement (FunctionDeclSourceElement _name _params _body) = return Nothing
 
 evalStatement :: Statement -> Eval (Maybe Double)
 evalStatement (ExpressionStatement expr) = do

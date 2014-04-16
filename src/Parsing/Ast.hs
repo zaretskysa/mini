@@ -1,6 +1,17 @@
 module Parsing.Ast where
 
-data Program = Program [Statement]
+import Types
+
+data Program = Program [SourceElement]
+    deriving (Show, Eq)
+
+data SourceElement = 
+      StatementSourceElement Statement
+    | FunctionDeclSourceElement Identifier Identifiers FunctionBody
+    deriving (Show, Eq)
+
+data FunctionBody = 
+    FunctionBody [SourceElement]
     deriving (Show, Eq)
 
 data Statement = 

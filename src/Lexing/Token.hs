@@ -19,8 +19,14 @@ data Punctuator =
     | DivPunctuator
     | AssignPunctuator
     | SemicolonPunctuator
+    | CommaPunctuator
+    | OpenParenPunctuator
+    | CloseParenPunctuator
+    | OpenBracePunctuator
+    | CloseBracePunctuator
     deriving (Show, Eq)
 
 data Keyword =
-    VarKeyword
+      VarKeyword
+    | FunctionKeyword
     deriving (Show, Eq)
