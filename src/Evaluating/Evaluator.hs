@@ -47,7 +47,7 @@ evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
     return value
 
 evalAddiitiveExpression :: AdditiveExpression -> Eval Double
-evalAddiitiveExpression (UnaryExpression mult) = evalMultExpression mult
+evalAddiitiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult
 evalAddiitiveExpression (PlusExpression expr mult) = evalBinaryExpr expr mult (+)
 evalAddiitiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-)
 

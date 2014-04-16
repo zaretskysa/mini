@@ -14,7 +14,7 @@ data AssignmentExpression =
     deriving (Show, Eq)
 
 data AdditiveExpression =
-      UnaryExpression MultExpression
+      UnaryAdditiveExpression MultExpression
     | PlusExpression AdditiveExpression MultExpression
     | MinusExpression AdditiveExpression MultExpression
     deriving (Show, Eq)
