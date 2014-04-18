@@ -74,11 +74,11 @@ varDeclStatement = do
 additiveExpression :: TokenParser AdditiveExpression
 additiveExpression = do
     left <- unaryAdditiveExpression
-    restOfExpression left
+    restOfAdditiveExpression left
 
 --TODO: try to use 'chainl' combinator to deal with left recursion
-restOfExpression :: AdditiveExpression -> TokenParser AdditiveExpression
-restOfExpression left = do
+restOfAdditiveExpression :: AdditiveExpression -> TokenParser AdditiveExpression
+restOfAdditiveExpression left = do
     (try $ restOfPlusExpression left)
     <|> (try $ restOfMinusExpression left)
     <|> return left
@@ -86,12 +86,12 @@ restOfExpression left = do
 restOfPlusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfPlusExpression left = do
     mult <- plus >> multExpression
-    restOfExpression $ PlusExpression left mult
+    restOfAdditiveExpression $ PlusExpression left mult
 
 restOfMinusExpression :: AdditiveExpression -> TokenParser AdditiveExpression
 restOfMinusExpression left = do
     mult <- minus >> multExpression
-    restOfExpression $ MinusExpression left mult
+    restOfAdditiveExpression $ MinusExpression left mult
 
 unaryAdditiveExpression :: TokenParser AdditiveExpression
 unaryAdditiveExpression = multExpression >>= return . UnaryAdditiveExpression
