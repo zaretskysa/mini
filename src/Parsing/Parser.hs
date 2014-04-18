@@ -24,9 +24,7 @@ parseString input = case tokenize input of
     Right toks -> parseTokens toks
 
 program :: TokenParser Program
-program = do
-    srcElements <- many sourceElement
-    return $ Program srcElements
+program = many sourceElement >>= return . Program
 
 sourceElement :: TokenParser SourceElement
 sourceElement = statementSourceElement <|> functionDeclSourceElement
@@ -54,11 +52,11 @@ expressionStatement = do
 
 assignmentExpression :: TokenParser AssignmentExpression
 assignmentExpression = 
-    try assignmentOperatorExpression 
+    try assignmentOperatorExpression
     <|> additiveAssignmentExpression
 
 additiveAssignmentExpression :: TokenParser AssignmentExpression
-additiveAssignmentExpression = 
+additiveAssignmentExpression =
     additiveExpression >>= return . AdditiveAssignmentExpression
 
 assignmentOperatorExpression :: TokenParser AssignmentExpression
@@ -110,7 +108,7 @@ restOfMultExpression :: MultExpression -> TokenParser MultExpression
 restOfMultExpression left = do
     (try $ restOfMultMultExpression left)
     <|> (try $ restOfDivMultExpression left)
-    <|> (return left)
+    <|> return left
 
 restOfMultMultExpression :: MultExpression -> TokenParser MultExpression
 restOfMultMultExpression left = do
@@ -124,5 +122,18 @@ restOfDivMultExpression left = do
 
 accessExpression :: TokenParser AccessExpression
 accessExpression = do
-    (numericLiteral >>= return . DoubleAccessExpression)
-    <|> (identifier >>= return . IdentAccessExpression)
+    doubleAccessExpression
+    <|> try callAccessExpression
+    <|> identifierAccessExpression
+
+doubleAccessExpression :: TokenParser AccessExpression
+doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
+
+identifierAccessExpression :: TokenParser AccessExpression
+identifierAccessExpression = identifier >>= return . IdentAccessExpression
+
+callAccessExpression :: TokenParser AccessExpression
+callAccessExpression = do
+    funName <- identifier
+    params <- parens $ many assignmentExpression
+    return $ CallAccessExpression funName params

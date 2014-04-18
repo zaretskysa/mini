@@ -7,7 +7,7 @@ module Evaluating.Evaluator
 import Debug.Trace
 import Prelude hiding (lookup)
 
---import Debug
+import Debug
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -78,4 +78,4 @@ evalAccessExpression (DoubleAccessExpression num) = return num
 evalAccessExpression (IdentAccessExpression ident) = do
     Just val <- H.lookup ident
     return val
-
+evalAccessExpression (CallAccessExpression func params) = $stub
