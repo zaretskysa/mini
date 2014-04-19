@@ -11,9 +11,10 @@ module Evaluating.Eval
 import Control.Monad.Identity
 import Control.Monad.State
 
-import Evaluating.Heap (Heap, empty)
+--import Evaluating.Heap (Heap, empty)
+import Evaluating.Environment (Environment, empty)
 
-type Eval a = StateT Heap Identity a
+type Eval a = StateT Environment Identity a
 
-runEval :: Eval a -> (a, Heap)
+runEval :: Eval a -> (a, Environment)
 runEval eval = runIdentity (runStateT eval empty)
