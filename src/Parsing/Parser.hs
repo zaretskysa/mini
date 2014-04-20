@@ -7,6 +7,7 @@ module Parsing.Parser
 import Control.Applicative ((<*))
 import Text.ParserCombinators.Parsec (ParseError)
 import Text.ParserCombinators.Parsec.Prim hiding (token)
+import Text.ParserCombinators.Parsec.Combinator
 
 import Lexing.Token
 import Lexing.Lexer
@@ -33,14 +34,14 @@ statementSourceElement :: TokenParser SourceElement
 statementSourceElement = statement >>= return . StatementSourceElement
 
 functionDeclSourceElement :: TokenParser SourceElement
-functionDeclSourceElement = do
+functionDeclSourceElement = functionDeclaration >>= return . FunctionDeclSourceElement
+
+functionDeclaration :: TokenParser FunctionDeclaration
+functionDeclaration = do
     name <- function >> identifier
     params <- parens $ sepByComma identifier
-    body <- braces functionBody
-    return $ FunctionDeclSourceElement name params body
-
-functionBody :: TokenParser FunctionBody
-functionBody = many sourceElement >>= return . FunctionBody
+    body <- braces $ many sourceElement
+    return $ FunctionDeclaration name params body
 
 statement :: TokenParser Statement
 statement = expressionStatement <|> varDeclStatement
@@ -135,5 +136,5 @@ identifierAccessExpression = identifier >>= return . IdentAccessExpression
 callAccessExpression :: TokenParser AccessExpression
 callAccessExpression = do
     funName <- identifier
-    params <- parens $ many assignmentExpression
+    params <- parens $ sepBy assignmentExpression comma
     return $ CallAccessExpression funName params

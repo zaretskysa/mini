@@ -7,11 +7,11 @@ data Program = Program [SourceElement]
 
 data SourceElement = 
       StatementSourceElement Statement
-    | FunctionDeclSourceElement Identifier Identifiers FunctionBody
+    | FunctionDeclSourceElement FunctionDeclaration
     deriving (Show, Eq)
 
-data FunctionBody = 
-    FunctionBody [SourceElement]
+data FunctionDeclaration = 
+    FunctionDeclaration Identifier Identifiers [SourceElement]
     deriving (Show, Eq)
 
 data Statement = 

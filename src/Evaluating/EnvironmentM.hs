@@ -9,6 +9,7 @@ module Evaluating.EnvironmentM
 import qualified Control.Monad.State as St
 
 import Types
+import Evaluating.Value
 import Evaluating.Eval
 import qualified Evaluating.Environment as E
 

@@ -12,16 +12,17 @@ import Data.Map (Map)
 import qualified Data.Map as M
 
 import Types
+import Evaluating.Value
 
-type Heap = Map Identifier Double
+type Heap = Map Identifier Value
 
 empty :: Heap
 empty = M.empty
 
-insert :: Identifier -> Double -> Heap -> Heap
+insert :: Identifier -> Value -> Heap -> Heap
 insert = M.insert
 
-lookup :: Identifier -> Heap -> Maybe Double
+lookup :: Identifier -> Heap -> Maybe Value
 lookup = M.lookup
 
 delete :: Identifier -> Heap -> Heap

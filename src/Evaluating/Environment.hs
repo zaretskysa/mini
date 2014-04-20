@@ -13,6 +13,7 @@ module Evaluating.Environment
 
 import qualified Stack as S
 import qualified Evaluating.Heap as H
+import Evaluating.Value
 import Types
 
 type LexEnv = H.Heap

@@ -6,15 +6,15 @@ module Evaluating.Evaluator
 
 import Debug.Trace
 import Prelude hiding (lookup)
+import Text.Show.Pretty (ppShow)
 
-import Debug
-import Types
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
+import Evaluating.Value
 import qualified Evaluating.EnvironmentM as E
 
-type BinaryOperator = Value -> Value -> Value
+type BinaryOperator = Double -> Double -> Double
 
 evalString :: String -> MaybeValue
 evalString input = case parseString input of
@@ -24,18 +24,26 @@ evalString input = case parseString input of
 eval :: Program -> MaybeValue
 eval program = 
     let (result, env) = runEval $ evalProgram program
-    in traceShow env result
+    in trace (ppShow env) result
 
 evalProgram :: Program -> Eval MaybeValue
 evalProgram (Program []) = return Nothing
-evalProgram (Program elements) = do
-    E.enterLexEnv
+evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
+
+evalSourceElements :: [SourceElement] -> Eval MaybeValue
+evalSourceElements [] = return Nothing
+evalSourceElements elements = do
     results <- mapM evalSourceElement elements
     return $ last results
 
 evalSourceElement :: SourceElement -> Eval MaybeValue
 evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
-evalSourceElement (FunctionDeclSourceElement _name _params _body) = return Nothing
+evalSourceElement (FunctionDeclSourceElement decl) =
+    evalFunctionDecl decl >> return Nothing
+
+evalFunctionDecl :: FunctionDeclaration -> Eval ()
+evalFunctionDecl func@(FunctionDeclaration name _params _body) =
+    E.insertValue name $ FunctionValue func
 
 evalStatement :: Statement -> Eval MaybeValue
 evalStatement (ExpressionStatement expr) = do
@@ -60,9 +68,9 @@ evalAddiitiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (
 
 evalBinaryExpr :: AdditiveExpression -> MultExpression -> BinaryOperator -> Eval Value
 evalBinaryExpr expr mult op = do 
-    left <- evalAddiitiveExpression expr
-    right <- evalMultExpression mult
-    return $ left `op` right
+    NumberValue left <- evalAddiitiveExpression expr
+    NumberValue right <- evalMultExpression mult
+    return $ NumberValue $ left `op` right
 
 evalMultExpression :: MultExpression -> Eval Value
 evalMultExpression (UnaryMultExpression acc) = evalAccessExpression acc
@@ -71,13 +79,20 @@ evalMultExpression (DivMultExpression mult acc) = evalBinaryMultExpr mult acc (/
 
 evalBinaryMultExpr :: MultExpression -> AccessExpression -> BinaryOperator -> Eval Value
 evalBinaryMultExpr mult acc op = do
-    left <- evalMultExpression mult
-    right <- evalAccessExpression acc
-    return $ left `op` right
+    (NumberValue left) <- evalMultExpression mult
+    (NumberValue right) <- evalAccessExpression acc
+    return $ NumberValue $ left `op` right
 
 evalAccessExpression :: AccessExpression -> Eval Value
-evalAccessExpression (DoubleAccessExpression num) = return num
+evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
 evalAccessExpression (IdentAccessExpression ident) = do
     Just val <- E.lookupValue ident
     return val
-evalAccessExpression (CallAccessExpression func params) = $stub
+evalAccessExpression (CallAccessExpression funcName actualParams) = do
+    Just (FunctionValue (FunctionDeclaration _ formalParams body)) <- E.lookupValue funcName
+    evaluatedParams <- mapM evalAssignmentExpression actualParams
+    E.enterLexEnv
+    zipWithM E.insertValue formalParams evaluatedParams
+    Just result <- evalSourceElements body
+    E.leaveLexEnv
+    return result
