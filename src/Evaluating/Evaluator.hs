@@ -29,7 +29,7 @@ eval program =
 evalProgram :: Program -> Eval MaybeValue
 evalProgram (Program []) = return Nothing
 evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
-
+    
 evalSourceElements :: [SourceElement] -> Eval MaybeValue
 evalSourceElements [] = return Nothing
 evalSourceElements elements = do
@@ -50,25 +50,25 @@ evalStatement (ExpressionStatement expr) = do
     value <- evalAssignmentExpression expr
     return $ Just value
 evalStatement (VarDeclStatement ident expr) = do
-    value <- evalAddiitiveExpression expr
+    value <- evalAdditiveExpression expr
     E.insertValue ident value
     return $ Just value
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
-evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAddiitiveExpression expr
+evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
-    value <- evalAddiitiveExpression expr
+    value <- evalAdditiveExpression expr
     E.insertValue varName value
     return value
 
-evalAddiitiveExpression :: AdditiveExpression -> Eval Value
-evalAddiitiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult
-evalAddiitiveExpression (PlusExpression expr mult) = evalBinaryExpr expr mult (+)
-evalAddiitiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-)
+evalAdditiveExpression :: AdditiveExpression -> Eval Value
+evalAdditiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult
+evalAdditiveExpression (PlusExpression expr mult) = evalBinaryExpr expr mult (+)
+evalAdditiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-)
 
 evalBinaryExpr :: AdditiveExpression -> MultExpression -> BinaryOperator -> Eval Value
 evalBinaryExpr expr mult op = do 
-    NumberValue left <- evalAddiitiveExpression expr
+    NumberValue left <- evalAdditiveExpression expr
     NumberValue right <- evalMultExpression mult
     return $ NumberValue $ left `op` right
 
