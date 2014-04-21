@@ -4,6 +4,7 @@ module Debug
     dump,
 ) where
 
+import Debug.Trace
 import Development.Placeholders
 import Language.Haskell.TH (Q, Exp)
 

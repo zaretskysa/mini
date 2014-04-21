@@ -29,4 +29,6 @@ data Punctuator =
 data Keyword =
       VarKeyword
     | FunctionKeyword
+    | IfKeyword
+    | ElseKeyword
     deriving (Show, Eq)

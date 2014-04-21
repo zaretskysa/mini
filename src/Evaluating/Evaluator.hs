@@ -8,6 +8,7 @@ import Debug.Trace
 import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
 
+import Debug
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -53,6 +54,7 @@ evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
     E.insertValue ident value
     return $ Just value
+evalStatement (IfStatement expr thenStmt elseStmt) = $stub
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr

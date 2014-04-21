@@ -44,7 +44,18 @@ functionDeclaration = do
     return $ FunctionDeclaration name params body
 
 statement :: TokenParser Statement
-statement = expressionStatement <|> varDeclStatement
+statement = 
+        expressionStatement
+    <|> varDeclStatement
+    <|> ifStatement
+
+ifStatement :: TokenParser Statement
+ifStatement = do
+    ifKeyword
+    expr <- parens additiveExpression
+    thenStmt <- statement
+    elseStmt <- optionMaybe (elseKeyword >> statement)
+    return $ IfStatement expr thenStmt elseStmt
 
 expressionStatement :: TokenParser Statement
 expressionStatement = do

@@ -14,9 +14,12 @@ data FunctionDeclaration =
     FunctionDeclaration Identifier Identifiers [SourceElement]
     deriving (Show, Eq)
 
+type MaybeStatement = Maybe Statement
+
 data Statement = 
       ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
+    | IfStatement AdditiveExpression Statement MaybeStatement
     deriving (Show, Eq)
 
 data AssignmentExpression = 
