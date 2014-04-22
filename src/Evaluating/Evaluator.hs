@@ -46,6 +46,7 @@ evalFunctionDecl func@(FunctionDeclaration name _params _body) =
     E.insertValue name $ FunctionValue func
 
 evalStatement :: Statement -> Eval MaybeValue
+evalStatement EmptyStatement = return Nothing
 evalStatement (ExpressionStatement expr) = do
     value <- evalAssignmentExpression expr
     return $ Just value

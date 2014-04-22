@@ -17,7 +17,8 @@ data FunctionDeclaration =
 type MaybeStatement = Maybe Statement
 
 data Statement = 
-      ExpressionStatement AssignmentExpression
+      EmptyStatement
+    | ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
     | IfStatement AdditiveExpression Statement MaybeStatement
     deriving (Show, Eq)

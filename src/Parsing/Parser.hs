@@ -45,9 +45,13 @@ functionDeclaration = do
 
 statement :: TokenParser Statement
 statement = 
-        expressionStatement
+        emptyStatement
+    <|> expressionStatement
     <|> varDeclStatement
     <|> ifStatement
+
+emptyStatement :: TokenParser Statement
+emptyStatement = semicolon >> return EmptyStatement
 
 ifStatement :: TokenParser Statement
 ifStatement = do
