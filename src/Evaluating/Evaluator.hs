@@ -36,6 +36,12 @@ evalSourceElements elements = do
     results <- mapM evalSourceElement elements
     return $ last results
 
+evalStatements :: [Statement] -> Eval MaybeValue
+evalStatements [] = return Nothing
+evalStatements stmts = do
+    results <- mapM evalStatement stmts
+    return $ last results
+
 evalSourceElement :: SourceElement -> Eval MaybeValue
 evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
 evalSourceElement (FunctionDeclSourceElement decl) =
@@ -47,6 +53,11 @@ evalFunctionDecl func@(FunctionDeclaration name _params _body) =
 
 evalStatement :: Statement -> Eval MaybeValue
 evalStatement EmptyStatement = return Nothing
+evalStatement (BlockStatement stmts) = do
+    E.enterLexEnv
+    res <- evalStatements stmts
+    E.leaveLexEnv
+    return res
 evalStatement (ExpressionStatement expr) = do
     value <- evalAssignmentExpression expr
     return $ Just value

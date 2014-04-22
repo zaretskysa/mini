@@ -18,6 +18,7 @@ type MaybeStatement = Maybe Statement
 
 data Statement = 
       EmptyStatement
+    | BlockStatement [Statement]
     | ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
     | IfStatement AdditiveExpression Statement MaybeStatement

@@ -1,3 +1,4 @@
+
 module Parsing.Parser
 (
     parseTokens,
@@ -46,9 +47,13 @@ functionDeclaration = do
 statement :: TokenParser Statement
 statement = 
         emptyStatement
+    <|> blockStatement
     <|> expressionStatement
     <|> varDeclStatement
     <|> ifStatement
+
+blockStatement :: TokenParser Statement
+blockStatement = braces $ many statement >>= return . BlockStatement 
 
 emptyStatement :: TokenParser Statement
 emptyStatement = semicolon >> return EmptyStatement
