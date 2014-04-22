@@ -8,7 +8,6 @@ import Debug.Trace
 import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
 
-import Debug
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -30,7 +29,7 @@ eval program =
 evalProgram :: Program -> Eval MaybeValue
 evalProgram (Program []) = return Nothing
 evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
-    
+
 evalSourceElements :: [SourceElement] -> Eval MaybeValue
 evalSourceElements [] = return Nothing
 evalSourceElements elements = do
@@ -54,8 +53,14 @@ evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
     E.insertValue ident value
     return $ Just value
-evalStatement (IfStatement expr thenStmt elseStmt) = $stub
-
+evalStatement (IfStatement expr thenStmt mbElseStmt) =
+    evalAdditiveExpression expr >>= evalIfThenElse
+    where
+        evalIfThenElse value
+            | NumberValue num <- value, num /= 0 = evalStatement thenStmt
+            | Just elseStmt <- mbElseStmt = evalStatement elseStmt
+            | otherwise = return Nothing
+        
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
