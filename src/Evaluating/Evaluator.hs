@@ -8,6 +8,7 @@ import Debug.Trace
 import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
 
+import Debug
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -38,9 +39,14 @@ evalSourceElements elements = do
 
 evalStatements :: [Statement] -> Eval MaybeValue
 evalStatements [] = return Nothing
-evalStatements stmts = do
-    results <- mapM evalStatement stmts
-    return $ last results
+evalStatements (ret@(ReturnStatement _expr):_stmts) =
+    evalStatement ret >>= return
+evalStatements [stmt] = do
+    res <- evalStatement stmt
+    E.leaveLexEnv
+    return res
+evalStatements (st:stmts) =
+    evalStatement st >> evalStatements stmts >>= return
 
 evalSourceElement :: SourceElement -> Eval MaybeValue
 evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
@@ -53,18 +59,22 @@ evalFunctionDecl func@(FunctionDeclaration name _params _body) =
 
 evalStatement :: Statement -> Eval MaybeValue
 evalStatement EmptyStatement = return Nothing
+
 evalStatement (BlockStatement stmts) = do
     E.enterLexEnv
     res <- evalStatements stmts
     E.leaveLexEnv
     return res
+
 evalStatement (ExpressionStatement expr) = do
     value <- evalAssignmentExpression expr
     return $ Just value
+
 evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
     E.insertValue ident value
     return $ Just value
+
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
     evalAdditiveExpression expr >>= evalIfThenElse
     where
@@ -72,7 +82,14 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
             | NumberValue num <- value, num /= 0 = evalStatement thenStmt
             | Just elseStmt <- mbElseStmt = evalStatement elseStmt
             | otherwise = return Nothing
-        
+
+evalStatement (ReturnStatement Nothing) = return Nothing
+
+evalStatement (ReturnStatement (Just expr)) = do
+    res <- evalAdditiveExpression expr
+    E.leaveLexEnv
+    return $ Just res
+
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do

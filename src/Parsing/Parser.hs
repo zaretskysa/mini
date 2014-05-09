@@ -26,7 +26,7 @@ parseString input = case tokenize input of
     Right toks -> parseTokens toks
 
 program :: TokenParser Program
-program = many sourceElement >>= return . Program
+program = many sourceElement <* eof >>= return . Program
 
 sourceElement :: TokenParser SourceElement
 sourceElement = statementSourceElement <|> functionDeclSourceElement
@@ -51,6 +51,14 @@ statement =
     <|> expressionStatement
     <|> varDeclStatement
     <|> ifStatement
+    <|> returnStatement
+
+returnStatement :: TokenParser Statement
+returnStatement = do
+    returnKeyword
+    expr <- optionMaybe additiveExpression
+    semicolon
+    return $ ReturnStatement expr
 
 blockStatement :: TokenParser Statement
 blockStatement = braces $ many statement >>= return . BlockStatement 

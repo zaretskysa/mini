@@ -21,3 +21,5 @@ thenKeyword = keyword ElseKeyword <?> "then"
 elseKeyword :: TokenParser Keyword
 elseKeyword = keyword ElseKeyword <?> "else"
 
+returnKeyword :: TokenParser Keyword
+returnKeyword = keyword ReturnKeyword <?> "return"
