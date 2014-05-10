@@ -40,13 +40,13 @@ evalSourceElements elements = do
 evalStatements :: [Statement] -> Eval MaybeValue
 evalStatements [] = return Nothing
 evalStatements (ret@(ReturnStatement _expr):_stmts) =
-    evalStatement ret >>= return
+    evalStatement ret
 evalStatements [stmt] = do
     res <- evalStatement stmt
     E.leaveLexEnv
     return res
 evalStatements (st:stmts) =
-    evalStatement st >> evalStatements stmts >>= return
+    evalStatement st >> evalStatements stmts
 
 evalSourceElement :: SourceElement -> Eval MaybeValue
 evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
