@@ -1,5 +1,7 @@
 module Cont where
 
+import Control.Monad.Cont
+
 data Statement = 
       Expr Int
     | Block [Statement]
@@ -11,21 +13,25 @@ data Value =
     | Value Int
     deriving (Show, Eq)
 
-type NextStep = Value -> Value
+evalStmt :: Statement -> Cont Value Value
+evalStmt (Expr val) = return $ Value val
+evalStmt (Block stmts) = evalBlock stmts
+evalStmt (Return val) = returnValue $ Value val
 
-evalStmt :: Statement -> NextStep -> Value
-evalStmt (Expr val) next = 
-    let res = Value val
-    in next res
-evalStmt (Block stmts) next = evalBlock stmts next
-evalStmt (Return val) next = Value val
+returnValue :: Value -> Cont Value Value
+returnValue val = cont $ \_ -> val
 
-evalBlock :: [Statement] -> NextStep -> Value
-evalBlock [] next = next Undefined
-evalBlock [st] next = evalStmt st next
-evalBlock (st:rest) next = evalStmt st $ \ _ -> evalBlock rest next
+evalBlock :: [Statement] -> Cont Value Value
+evalBlock [] = return Undefined
+evalBlock [st] = evalStmt st
+evalBlock (st:rest) = evalStmtAndContinue st rest
 
-evalProgram stmts = evalBlock stmts id
+evalStmtAndContinue :: Statement -> [Statement] -> Cont Value Value
+evalStmtAndContinue st rest =
+    cont $ \next -> runCont (evalStmt st) (\_ -> runCont (evalBlock rest) next)
+
+evalProgram :: [Statement] -> Value
+evalProgram stmts = runCont (evalBlock stmts) id
 
 prog1 = [Expr 1, Block [Return 3, Expr 2], Expr 4] 
 evalProg1 = evalProgram prog1 -- result will be Value 3
