@@ -31,11 +31,7 @@ returnValue val = cont $ \_ -> val
 evalBlock :: [Statement] -> Eval Value
 evalBlock [] = return Undefined
 evalBlock [st] = evalStmt st
-evalBlock (st:rest) = evalStmtAndContinue st rest
-
-evalStmtAndContinue :: Statement -> [Statement] -> Eval Value
-evalStmtAndContinue st rest =
-    cont $ \next -> runCont (evalStmt st) (\_ -> runCont (evalBlock rest) next)
+evalBlock (st:rest) = evalStmt st >> evalBlock rest
 
 evalProgram :: [Statement] -> Value
 evalProgram stmts = runEval $ evalBlock stmts
