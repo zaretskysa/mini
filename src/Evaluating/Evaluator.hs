@@ -17,78 +17,61 @@ import qualified Evaluating.EnvironmentM as E
 
 type BinaryOperator = Double -> Double -> Double
 
-evalString :: String -> MaybeValue
+evalString :: String -> Value
 evalString input = case parseString input of
-    Left _ -> Nothing
+    Left _ -> UndefinedValue
     Right prog -> eval prog
 
-eval :: Program -> MaybeValue
+eval :: Program -> Value
 eval program = 
     let (result, env) = runEval $ evalProgram program
     in trace (ppShow env) result
 
-evalProgram :: Program -> Eval MaybeValue
-evalProgram (Program []) = return Nothing
+evalProgram :: Program -> Eval Value
+evalProgram (Program []) = return UndefinedValue
 evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
 
-evalSourceElements :: [SourceElement] -> Eval MaybeValue
-evalSourceElements [] = return Nothing
-evalSourceElements elements = do
-    results <- mapM evalSourceElement elements
-    return $ last results
+evalSourceElements :: [SourceElement] -> Eval Value
+evalSourceElements [] = return UndefinedValue
+evalSourceElements [element] = evalSourceElement element
+evalSourceElements (element:rest) = evalSourceElement element >> evalSourceElements rest
 
-evalStatements :: [Statement] -> Eval MaybeValue
-evalStatements [] = return Nothing
-evalStatements (ret@(ReturnStatement _expr):_stmts) =
-    evalStatement ret
-evalStatements [stmt] = do
-    res <- evalStatement stmt
-    E.leaveLexEnv
-    return res
-evalStatements (st:stmts) =
-    evalStatement st >> evalStatements stmts
+evalStatements :: [Statement] -> Eval Value
+evalStatements [] = return UndefinedValue
+evalStatements [stmt] = evalStatement stmt
+evalStatements (st:stmts) = evalStatement st >> evalStatements stmts
 
-evalSourceElement :: SourceElement -> Eval MaybeValue
+evalSourceElement :: SourceElement -> Eval Value
 evalSourceElement (StatementSourceElement stmt) = evalStatement stmt
 evalSourceElement (FunctionDeclSourceElement decl) =
-    evalFunctionDecl decl >> return Nothing
+    evalFunctionDecl decl >> return UndefinedValue
 
 evalFunctionDecl :: FunctionDeclaration -> Eval ()
 evalFunctionDecl func@(FunctionDeclaration name _params _body) =
     E.insertValue name $ FunctionValue func
 
-evalStatement :: Statement -> Eval MaybeValue
-evalStatement EmptyStatement = return Nothing
-
+evalStatement :: Statement -> Eval Value
+evalStatement EmptyStatement = return UndefinedValue
 evalStatement (BlockStatement stmts) = do
     E.enterLexEnv
     res <- evalStatements stmts
     E.leaveLexEnv
     return res
-
 evalStatement (ExpressionStatement expr) = do
     value <- evalAssignmentExpression expr
-    return $ Just value
-
+    return value
 evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
     E.insertValue ident value
-    return $ Just value
-
+    return value
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
     evalAdditiveExpression expr >>= evalIfThenElse
     where
         evalIfThenElse value
             | NumberValue num <- value, num /= 0 = evalStatement thenStmt
             | Just elseStmt <- mbElseStmt = evalStatement elseStmt
-            | otherwise = return Nothing
-
-evalStatement (ReturnStatement Nothing) = return Nothing
-
-evalStatement (ReturnStatement (Just expr)) = do
-    res <- evalAdditiveExpression expr
-    E.leaveLexEnv
-    return $ Just res
+            | otherwise = return UndefinedValue
+evalStatement (ReturnStatement mbExpr) = return UndefinedValue
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
@@ -129,6 +112,6 @@ evalAccessExpression (CallAccessExpression funcName actualParams) = do
     evaluatedParams <- mapM evalAssignmentExpression actualParams
     E.enterLexEnv
     zipWithM E.insertValue formalParams evaluatedParams
-    Just result <- evalSourceElements body
+    result <- evalSourceElements body
     E.leaveLexEnv
     return result
