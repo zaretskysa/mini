@@ -15,10 +15,10 @@ data Value =
     | Value Int
     deriving (Show, Eq)
 
-type Eval a = ContT a Identity a
+type Eval a = StateT Int (ContT a Identity) a
 
 runEval :: Eval Value -> Value
-runEval eval = runIdentity (runContT eval (return . id))
+runEval eval = runIdentity (runContT (runStateT eval 0) (return . fst))
 
 evalStmt :: Statement -> Eval Value
 evalStmt (Expr val) = return $ Value val
@@ -26,7 +26,7 @@ evalStmt (Block stmts) = evalBlock stmts
 evalStmt (Return val) = returnValue $ Value val
 
 returnValue :: Value -> Eval Value
-returnValue val = cont $ \_ -> val
+returnValue val = lift $ cont $ \_ -> val
 
 evalBlock :: [Statement] -> Eval Value
 evalBlock [] = return Undefined
