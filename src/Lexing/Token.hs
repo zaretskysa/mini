@@ -31,4 +31,5 @@ data Keyword =
     | FunctionKeyword
     | IfKeyword
     | ElseKeyword
+    | ReturnKeyword
     deriving (Show, Eq)

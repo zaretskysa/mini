@@ -22,12 +22,15 @@ data Statement =
     | ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
     | IfStatement AdditiveExpression Statement MaybeStatement
+    | ReturnStatement MaybeAdditiveExpression
     deriving (Show, Eq)
 
 data AssignmentExpression = 
       AdditiveAssignmentExpression AdditiveExpression
     | AssignmentOperatorExpression String AdditiveExpression
     deriving (Show, Eq)
+
+type MaybeAdditiveExpression = Maybe AdditiveExpression
 
 data AdditiveExpression =
       UnaryAdditiveExpression MultExpression
