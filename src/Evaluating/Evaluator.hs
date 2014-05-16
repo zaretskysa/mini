@@ -7,6 +7,7 @@ module Evaluating.Evaluator
 import Debug.Trace
 import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
+import Control.Monad.Cont
 
 import Debug
 import Parsing.Ast
@@ -23,9 +24,7 @@ evalString input = case parseString input of
     Right prog -> eval prog
 
 eval :: Program -> Value
-eval program = 
-    let (result, env) = runEval $ evalProgram program
-    in trace (ppShow env) result
+eval program = runEval $ evalProgram program
 
 evalProgram :: Program -> Eval Value
 evalProgram (Program []) = return UndefinedValue
@@ -71,7 +70,12 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
             | NumberValue num <- value, num /= 0 = evalStatement thenStmt
             | Just elseStmt <- mbElseStmt = evalStatement elseStmt
             | otherwise = return UndefinedValue
-evalStatement (ReturnStatement mbExpr) = return UndefinedValue
+evalStatement (ReturnStatement Nothing) = returnValue UndefinedValue
+evalStatement (ReturnStatement (Just addExpr)) = 
+    (evalAdditiveExpression addExpr) >>= returnValue
+
+returnValue :: Value -> Eval Value
+returnValue val = lift $ cont $ \_ -> val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr

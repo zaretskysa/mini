@@ -10,11 +10,12 @@ module Evaluating.Eval
 
 import Control.Monad.Identity
 import Control.Monad.State
+import Control.Monad.Cont
 
---import Evaluating.Heap (Heap, empty)
+import Evaluating.Value
 import Evaluating.Environment (Environment, empty)
 
-type Eval a = StateT Environment Identity a
+type Eval a = StateT Environment (ContT Value Identity) a
 
-runEval :: Eval a -> (a, Environment)
-runEval eval = runIdentity (runStateT eval empty)
+runEval :: Eval Value -> Value
+runEval eval = runIdentity (runContT (runStateT eval empty) (return . fst))
