@@ -3,6 +3,7 @@ module Evaluating.EnvironmentM
     enterLexEnv,
     leaveLexEnv,
     insertValue,
+    insertValues,
     lookupValue,
 ) where
 
@@ -21,6 +22,10 @@ leaveLexEnv = St.modify E.removeTop
 
 insertValue :: Identifier -> Value -> Eval ()
 insertValue ident value = St.modify $ E.insertValue ident value
+
+insertValues :: [(Identifier, Value)] -> Eval ()
+insertValues values = mapM_ inserter values
+    where inserter (ident, value) = insertValue ident value
 
 lookupValue :: Identifier -> Eval MaybeValue
 lookupValue ident = St.gets $ E.lookupValue ident
