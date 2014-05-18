@@ -4,6 +4,8 @@ import Parsing.Ast
 
 type MaybeValue = Maybe Value
 
+type Values = [Value]
+
 data Value =
       NumberValue Double
     | FunctionValue FunctionDeclaration

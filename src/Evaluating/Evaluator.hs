@@ -9,7 +9,7 @@ import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
 import Control.Monad.Cont
 
-import Debug
+import Types
 import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
@@ -24,7 +24,9 @@ evalString input = case parseString input of
     Right prog -> eval prog
 
 eval :: Program -> Value
-eval program = runEval $ evalProgram program
+eval program = 
+    let (val, env) = runEval $ evalProgram program
+    in trace (ppShow env) val
 
 evalProgram :: Program -> Eval Value
 evalProgram (Program []) = return UndefinedValue
@@ -32,7 +34,7 @@ evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
 
 evalSourceElements :: [SourceElement] -> Eval Value
 evalSourceElements [] = return UndefinedValue
-evalSourceElements [element] = evalSourceElement element
+evalSourceElements [element] = evalSourceElement element >> return UndefinedValue
 evalSourceElements (element:rest) = evalSourceElement element >> evalSourceElements rest
 
 evalStatements :: [Statement] -> Eval Value
@@ -51,14 +53,8 @@ evalFunctionDecl func@(FunctionDeclaration name _params _body) =
 
 evalStatement :: Statement -> Eval Value
 evalStatement EmptyStatement = return UndefinedValue
-evalStatement (BlockStatement stmts) = do
-    E.enterLexEnv
-    res <- evalStatements stmts
-    E.leaveLexEnv
-    return res
-evalStatement (ExpressionStatement expr) = do
-    value <- evalAssignmentExpression expr
-    return value
+evalStatement (BlockStatement stmts) = evalStatements stmts
+evalStatement (ExpressionStatement expr) = evalAssignmentExpression expr
 evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
     E.insertValue ident value
@@ -70,12 +66,12 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
             | NumberValue num <- value, num /= 0 = evalStatement thenStmt
             | Just elseStmt <- mbElseStmt = evalStatement elseStmt
             | otherwise = return UndefinedValue
-evalStatement (ReturnStatement Nothing) = returnValue UndefinedValue
-evalStatement (ReturnStatement (Just addExpr)) = 
-    (evalAdditiveExpression addExpr) >>= returnValue
+evalStatement (ReturnStatement Nothing) = return UndefinedValue
+evalStatement (ReturnStatement (Just expr)) = 
+    evalAdditiveExpression expr >>= evalFuncReturn
 
-returnValue :: Value -> Eval Value
-returnValue val = lift $ cont $ \_ -> val
+evalFuncReturn :: Value -> Eval Value
+evalFuncReturn val = ContT $ \_ -> return val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
@@ -114,8 +110,12 @@ evalAccessExpression (IdentAccessExpression ident) = do
 evalAccessExpression (CallAccessExpression funcName actualParams) = do
     Just (FunctionValue (FunctionDeclaration _ formalParams body)) <- E.lookupValue funcName
     evaluatedParams <- mapM evalAssignmentExpression actualParams
+    evalFuncCall body $ zip formalParams evaluatedParams
+
+evalFuncCall :: [SourceElement] -> [(Identifier, Value)] -> Eval Value
+evalFuncCall body params = do
     E.enterLexEnv
-    zipWithM E.insertValue formalParams evaluatedParams
-    result <- evalSourceElements body
+    E.insertValues params
+    val <- lift $ runContT (evalSourceElements body) return
     E.leaveLexEnv
-    return result
+    return val
