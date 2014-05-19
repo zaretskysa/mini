@@ -25,6 +25,7 @@ data Punctuator =
     | CloseParenPunctuator
     | OpenBracePunctuator
     | CloseBracePunctuator
+    | LogicalAndPunctuator
     deriving (Show, Eq)
 
 data Keyword =

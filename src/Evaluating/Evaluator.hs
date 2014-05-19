@@ -14,6 +14,7 @@ import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
 import Evaluating.Value
+import Evaluating.ConversionM
 import qualified Evaluating.EnvironmentM as E
 
 type BinaryOperator = Double -> Double -> Double
@@ -68,17 +69,25 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
             | otherwise = return UndefinedValue
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
 evalStatement (ReturnStatement (Just expr)) = 
-    evalAdditiveExpression expr >>= evalFuncReturn
+    evalLogicalAndExpression expr >>= evalFuncReturn
 
 evalFuncReturn :: Value -> Eval Value
 evalFuncReturn val = ContT $ \_ -> return val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
-evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
+evalAssignmentExpression (LogicalAndAssignmentExpression expr) = 
+    evalLogicalAndExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
-    value <- evalAdditiveExpression expr
+    value <- evalLogicalAndExpression expr
     E.insertValue varName value
     return value
+
+evalLogicalAndExpression :: LogicalAndExpression -> Eval Value
+evalLogicalAndExpression (UnaryLogicalAndExpression expr) = evalAdditiveExpression expr
+evalLogicalAndExpression (BinaryLogicalAndExpression logical additive) = do
+    left <- evalLogicalAndExpression logical >>= toBool
+    right <- evalAdditiveExpression additive >>= toBool
+    return $ BoolValue $ left && right
 
 evalAdditiveExpression :: AdditiveExpression -> Eval Value
 evalAdditiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult

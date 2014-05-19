@@ -46,5 +46,8 @@ multiplication = punctuator MultPunctuator <?> "multiplication"
 division :: TokenParser Punctuator
 division = punctuator MultPunctuator <?> "division"
 
+logicalAnd :: TokenParser Punctuator
+logicalAnd = punctuator LogicalAndPunctuator <?> "and"
+
 sepByComma :: TokenParser a -> TokenParser [a]
 sepByComma parser = sepBy parser comma
