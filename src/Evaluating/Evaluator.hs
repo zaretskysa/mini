@@ -69,18 +69,26 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
             | otherwise = return UndefinedValue
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
 evalStatement (ReturnStatement (Just expr)) = 
-    evalLogicalAndExpression expr >>= evalFuncReturn
+    evalLogicalOrExpression expr >>= evalFuncReturn
 
 evalFuncReturn :: Value -> Eval Value
 evalFuncReturn val = ContT $ \_ -> return val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
-evalAssignmentExpression (LogicalAndAssignmentExpression expr) = 
-    evalLogicalAndExpression expr
+evalAssignmentExpression (LogicalOrAssignmentExpression expr) = 
+    evalLogicalOrExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
-    value <- evalLogicalAndExpression expr
+    value <- evalLogicalOrExpression expr
     E.insertValue varName value
     return value
+
+evalLogicalOrExpression :: LogicalOrExpression -> Eval Value
+evalLogicalOrExpression (UnaryLogicalOrExpression expr) = 
+    evalLogicalAndExpression expr
+evalLogicalOrExpression (BinaryLogicalOrExpression logical additive) = do
+    left <- evalLogicalOrExpression logical >>= toBool
+    right <- evalLogicalAndExpression additive >>= toBool
+    return $ BoolValue $ left || right
 
 evalLogicalAndExpression :: LogicalAndExpression -> Eval Value
 evalLogicalAndExpression (UnaryLogicalAndExpression expr) = evalAdditiveExpression expr

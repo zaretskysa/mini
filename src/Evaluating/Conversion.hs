@@ -4,7 +4,6 @@ module Evaluating.Conversion
     toBool
 ) where
 
-import Debug
 import Evaluating.Value
 
 toBoolValue :: Value -> Value
@@ -17,4 +16,4 @@ toBool :: Value -> Bool
 toBool val = 
     case toBoolValue val of
         BoolValue True -> True
-        BoolValue False -> False
+        _ -> False

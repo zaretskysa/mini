@@ -24,3 +24,4 @@ punctuator' = do
     <|> (char '{' >> return OpenBracePunctuator)
     <|> (char '}' >> return CloseBracePunctuator)
     <|> (string "&&" >> return LogicalAndPunctuator)
+    <|> (string "||" >> return LogicalOrPunctuator)

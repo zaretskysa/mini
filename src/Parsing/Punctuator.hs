@@ -49,5 +49,8 @@ division = punctuator MultPunctuator <?> "division"
 logicalAnd :: TokenParser Punctuator
 logicalAnd = punctuator LogicalAndPunctuator <?> "and"
 
+logicalOr :: TokenParser Punctuator
+logicalOr = punctuator LogicalOrPunctuator <?> "or"
+
 sepByComma :: TokenParser a -> TokenParser [a]
 sepByComma parser = sepBy parser comma

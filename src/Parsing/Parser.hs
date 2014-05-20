@@ -56,7 +56,7 @@ statement =
 returnStatement :: TokenParser Statement
 returnStatement = do
     returnKeyword
-    expr <- optionMaybe logicalAndExpression
+    expr <- optionMaybe logicalOrExpression
     semicolon
     return $ ReturnStatement expr
 
@@ -86,13 +86,32 @@ assignmentExpression =
 
 logicalAndAssignmentExpression :: TokenParser AssignmentExpression
 logicalAndAssignmentExpression =
-    logicalAndExpression >>= return . LogicalAndAssignmentExpression
+    logicalOrExpression >>= return . LogicalOrAssignmentExpression
 
 assignmentOperatorExpression :: TokenParser AssignmentExpression
 assignmentOperatorExpression = do
     varName <- identifier
-    expr <- assign >> logicalAndExpression
+    expr <- assign >> logicalOrExpression
     return $ AssignmentOperatorExpression varName expr
+
+logicalOrExpression :: TokenParser LogicalOrExpression
+logicalOrExpression = do
+    left <- unaryLogicalOrExpression
+    restOfLogicalOrExpression left
+
+unaryLogicalOrExpression :: TokenParser LogicalOrExpression
+unaryLogicalOrExpression = 
+    logicalAndExpression >>= return . UnaryLogicalOrExpression
+
+restOfLogicalOrExpression :: LogicalOrExpression -> TokenParser LogicalOrExpression
+restOfLogicalOrExpression left = do
+    (try $ nonEmptyRestOfLogicalOrExpression left)
+    <|> return left
+
+nonEmptyRestOfLogicalOrExpression :: LogicalOrExpression -> TokenParser LogicalOrExpression
+nonEmptyRestOfLogicalOrExpression left = do
+    expr <- logicalOr >> logicalAndExpression
+    restOfLogicalOrExpression $ BinaryLogicalOrExpression left expr
 
 logicalAndExpression :: TokenParser LogicalAndExpression
 logicalAndExpression = do
