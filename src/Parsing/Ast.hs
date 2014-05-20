@@ -38,11 +38,17 @@ data LogicalOrExpression =
 type MaybeLogicalOrExpression = Maybe LogicalOrExpression
 
 data LogicalAndExpression =
-      UnaryLogicalAndExpression AdditiveExpression
-    | BinaryLogicalAndExpression LogicalAndExpression AdditiveExpression
+      UnaryLogicalAndExpression EqualityExpression
+    | BinaryLogicalAndExpression LogicalAndExpression EqualityExpression
     deriving (Show, Eq)
 
 type MaybeLogicalAndExpression = Maybe LogicalAndExpression
+
+data EqualityExpression = 
+      UnaryEqualityExpression AdditiveExpression
+    | EqualsExpression EqualityExpression AdditiveExpression
+    | NotEqualsExpression EqualityExpression AdditiveExpression
+    deriving (Show, Eq)
 
 data AdditiveExpression =
       UnaryAdditiveExpression MultExpression

@@ -91,11 +91,23 @@ evalLogicalOrExpression (BinaryLogicalOrExpression logical additive) = do
     return $ BoolValue $ left || right
 
 evalLogicalAndExpression :: LogicalAndExpression -> Eval Value
-evalLogicalAndExpression (UnaryLogicalAndExpression expr) = evalAdditiveExpression expr
-evalLogicalAndExpression (BinaryLogicalAndExpression logical additive) = do
+evalLogicalAndExpression (UnaryLogicalAndExpression expr) = evalEqualityExpression expr
+evalLogicalAndExpression (BinaryLogicalAndExpression logical equality) = do
     left <- evalLogicalAndExpression logical >>= toBool
-    right <- evalAdditiveExpression additive >>= toBool
+    right <- evalEqualityExpression equality >>= toBool
     return $ BoolValue $ left && right
+
+--TODO: remove copypaste
+evalEqualityExpression :: EqualityExpression -> Eval Value
+evalEqualityExpression (UnaryEqualityExpression expr) = evalAdditiveExpression expr
+evalEqualityExpression (EqualsExpression equal add) = do
+    left <- evalEqualityExpression equal
+    right <- evalAdditiveExpression add
+    return $ BoolValue $ left == right
+evalEqualityExpression (NotEqualsExpression equal add) = do
+    left <- evalEqualityExpression equal
+    right <- evalAdditiveExpression add
+    return $ BoolValue $ left /= right
 
 evalAdditiveExpression :: AdditiveExpression -> Eval Value
 evalAdditiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult

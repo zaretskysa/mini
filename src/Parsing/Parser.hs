@@ -119,7 +119,7 @@ logicalAndExpression = do
     restOfLogicalAndExpression left
 
 unaryLogicalAndExpression :: TokenParser LogicalAndExpression
-unaryLogicalAndExpression = additiveExpression >>= return . UnaryLogicalAndExpression
+unaryLogicalAndExpression = equalityExpression >>= return . UnaryLogicalAndExpression
 
 restOfLogicalAndExpression :: LogicalAndExpression -> TokenParser LogicalAndExpression
 restOfLogicalAndExpression left = do
@@ -128,7 +128,7 @@ restOfLogicalAndExpression left = do
 
 nonEmptyRestOfLogicalAndExpression :: LogicalAndExpression -> TokenParser LogicalAndExpression
 nonEmptyRestOfLogicalAndExpression left = do
-    expr <- logicalAnd >> additiveExpression
+    expr <- logicalAnd >> equalityExpression
     restOfLogicalAndExpression $ BinaryLogicalAndExpression left expr
 
 varDeclStatement :: TokenParser Statement
@@ -136,6 +136,30 @@ varDeclStatement = do
     varName <- var >> identifier
     expr <- assign >> additiveExpression
     return $ VarDeclStatement varName expr
+
+equalityExpression :: TokenParser EqualityExpression
+equalityExpression = do
+    left <- unaryEqualityExpression
+    restOfEqualityExpression left
+
+restOfEqualityExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfEqualityExpression left = do
+    (try $ restOfEqualsExpression left)
+    <|> (try $ restOfNotEqualsExpression left)
+    <|> return left
+
+restOfEqualsExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfEqualsExpression left = do
+    additive <- equals >> additiveExpression
+    restOfEqualityExpression $ EqualsExpression left additive
+
+restOfNotEqualsExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfNotEqualsExpression left = do
+    addititve <- notEquals >> additiveExpression
+    restOfEqualityExpression $ NotEqualsExpression left addititve
+
+unaryEqualityExpression :: TokenParser EqualityExpression
+unaryEqualityExpression = additiveExpression >>= return . UnaryEqualityExpression
 
 additiveExpression :: TokenParser AdditiveExpression
 additiveExpression = do
