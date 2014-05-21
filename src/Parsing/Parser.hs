@@ -69,7 +69,7 @@ emptyStatement = semicolon >> return EmptyStatement
 ifStatement :: TokenParser Statement
 ifStatement = do
     ifKeyword
-    expr <- parens additiveExpression
+    expr <- parens logicalOrExpression
     thenStmt <- statement
     elseStmt <- optionMaybe (elseKeyword >> statement)
     return $ IfStatement expr thenStmt elseStmt

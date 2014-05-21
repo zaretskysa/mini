@@ -61,15 +61,19 @@ evalStatement (VarDeclStatement ident expr) = do
     E.insertValue ident value
     return value
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
-    evalAdditiveExpression expr >>= toBool >>= evalIfThenElse
-    where
-        evalIfThenElse bool
-            | bool = evalStatement thenStmt
-            | Just elseStmt <- mbElseStmt = evalStatement elseStmt
-            | otherwise = return UndefinedValue
+    evalIfThenElse expr thenStmt mbElseStmt
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
 evalStatement (ReturnStatement (Just expr)) = 
     evalLogicalOrExpression expr >>= evalFuncReturn
+
+evalIfThenElse :: LogicalOrExpression -> Statement -> MaybeStatement -> Eval Value
+evalIfThenElse expr thenStmt mbElseStmt = do
+    evalLogicalOrExpression expr >>= toBool >>= innerEvalIfThenElse
+    where
+        innerEvalIfThenElse bool
+            | bool = evalStatement thenStmt
+            | Just elseStmt <- mbElseStmt = evalStatement elseStmt
+            | otherwise = return UndefinedValue
 
 evalFuncReturn :: Value -> Eval Value
 evalFuncReturn val = ContT $ \_ -> return val

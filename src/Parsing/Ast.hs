@@ -21,7 +21,7 @@ data Statement =
     | BlockStatement [Statement]
     | ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
-    | IfStatement AdditiveExpression Statement MaybeStatement
+    | IfStatement LogicalOrExpression Statement MaybeStatement
     | ReturnStatement MaybeLogicalOrExpression
     deriving (Show, Eq)
 
