@@ -12,7 +12,11 @@ punctuator = punctuator' >>= return . PunctuatorToken
 
 punctuator' :: Parser Punctuator
 punctuator' = do
-        (char '+' >> return PlusPunctuator)
+        try (string "==" >> return EqualsPunctuator)
+    <|> try (string "!=" >> return NotEqualsPunctuator)
+    <|> (string "&&" >> return LogicalAndPunctuator)
+    <|> (string "||" >> return LogicalOrPunctuator)
+    <|> (char '+' >> return PlusPunctuator)
     <|> (char '-' >> return MinusPunctuator)
     <|> (char '*' >> return MultPunctuator)
     <|> (char '/' >> return DivPunctuator)

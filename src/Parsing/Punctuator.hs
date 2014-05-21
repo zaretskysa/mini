@@ -46,5 +46,17 @@ multiplication = punctuator MultPunctuator <?> "multiplication"
 division :: TokenParser Punctuator
 division = punctuator MultPunctuator <?> "division"
 
+logicalAnd :: TokenParser Punctuator
+logicalAnd = punctuator LogicalAndPunctuator <?> "and"
+
+logicalOr :: TokenParser Punctuator
+logicalOr = punctuator LogicalOrPunctuator <?> "or"
+
+equals :: TokenParser Punctuator
+equals = punctuator EqualsPunctuator <?> "=="
+
+notEquals :: TokenParser Punctuator
+notEquals = punctuator NotEqualsPunctuator <?> "!="
+
 sepByComma :: TokenParser a -> TokenParser [a]
 sepByComma parser = sepBy parser comma

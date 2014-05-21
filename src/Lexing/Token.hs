@@ -7,6 +7,7 @@ module Lexing.Token
 
 data Token = 
       NumericLiteralToken Double
+    | BooleanLiteralToken Bool
     | IdentifierToken String
     | PunctuatorToken Punctuator
     | KeywordToken Keyword
@@ -24,6 +25,10 @@ data Punctuator =
     | CloseParenPunctuator
     | OpenBracePunctuator
     | CloseBracePunctuator
+    | LogicalAndPunctuator
+    | LogicalOrPunctuator
+    | EqualsPunctuator
+    | NotEqualsPunctuator
     deriving (Show, Eq)
 
 data Keyword =

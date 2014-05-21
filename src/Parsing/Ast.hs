@@ -21,22 +21,42 @@ data Statement =
     | BlockStatement [Statement]
     | ExpressionStatement AssignmentExpression
     | VarDeclStatement String AdditiveExpression
-    | IfStatement AdditiveExpression Statement MaybeStatement
-    | ReturnStatement MaybeAdditiveExpression
+    | IfStatement LogicalOrExpression Statement MaybeStatement
+    | ReturnStatement MaybeLogicalOrExpression
     deriving (Show, Eq)
 
 data AssignmentExpression = 
-      AdditiveAssignmentExpression AdditiveExpression
-    | AssignmentOperatorExpression String AdditiveExpression
+      LogicalOrAssignmentExpression LogicalOrExpression
+    | AssignmentOperatorExpression String LogicalOrExpression
     deriving (Show, Eq)
 
-type MaybeAdditiveExpression = Maybe AdditiveExpression
+data LogicalOrExpression =
+      UnaryLogicalOrExpression LogicalAndExpression
+    | BinaryLogicalOrExpression LogicalOrExpression LogicalAndExpression
+    deriving (Show, Eq)
+
+type MaybeLogicalOrExpression = Maybe LogicalOrExpression
+
+data LogicalAndExpression =
+      UnaryLogicalAndExpression EqualityExpression
+    | BinaryLogicalAndExpression LogicalAndExpression EqualityExpression
+    deriving (Show, Eq)
+
+type MaybeLogicalAndExpression = Maybe LogicalAndExpression
+
+data EqualityExpression = 
+      UnaryEqualityExpression AdditiveExpression
+    | EqualsExpression EqualityExpression AdditiveExpression
+    | NotEqualsExpression EqualityExpression AdditiveExpression
+    deriving (Show, Eq)
 
 data AdditiveExpression =
       UnaryAdditiveExpression MultExpression
     | PlusExpression AdditiveExpression MultExpression
     | MinusExpression AdditiveExpression MultExpression
     deriving (Show, Eq)
+
+type MaybeAdditiveExpression = Maybe AdditiveExpression
 
 data MultExpression =
       UnaryMultExpression AccessExpression
@@ -46,6 +66,7 @@ data MultExpression =
 
 data AccessExpression = 
       DoubleAccessExpression Double
+    | BoolAccessExpression Bool
     | IdentAccessExpression Identifier
     | CallAccessExpression Identifier [AssignmentExpression]
     deriving (Show, Eq)

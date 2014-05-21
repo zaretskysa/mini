@@ -56,7 +56,7 @@ statement =
 returnStatement :: TokenParser Statement
 returnStatement = do
     returnKeyword
-    expr <- optionMaybe additiveExpression
+    expr <- optionMaybe logicalOrExpression
     semicolon
     return $ ReturnStatement expr
 
@@ -69,7 +69,7 @@ emptyStatement = semicolon >> return EmptyStatement
 ifStatement :: TokenParser Statement
 ifStatement = do
     ifKeyword
-    expr <- parens additiveExpression
+    expr <- parens logicalOrExpression
     thenStmt <- statement
     elseStmt <- optionMaybe (elseKeyword >> statement)
     return $ IfStatement expr thenStmt elseStmt
@@ -82,23 +82,84 @@ expressionStatement = do
 assignmentExpression :: TokenParser AssignmentExpression
 assignmentExpression = 
     try assignmentOperatorExpression
-    <|> additiveAssignmentExpression
+    <|> logicalAndAssignmentExpression
 
-additiveAssignmentExpression :: TokenParser AssignmentExpression
-additiveAssignmentExpression =
-    additiveExpression >>= return . AdditiveAssignmentExpression
+logicalAndAssignmentExpression :: TokenParser AssignmentExpression
+logicalAndAssignmentExpression =
+    logicalOrExpression >>= return . LogicalOrAssignmentExpression
 
 assignmentOperatorExpression :: TokenParser AssignmentExpression
 assignmentOperatorExpression = do
     varName <- identifier
-    expr <- assign >> additiveExpression
+    expr <- assign >> logicalOrExpression
     return $ AssignmentOperatorExpression varName expr
+
+logicalOrExpression :: TokenParser LogicalOrExpression
+logicalOrExpression = do
+    left <- unaryLogicalOrExpression
+    restOfLogicalOrExpression left
+
+unaryLogicalOrExpression :: TokenParser LogicalOrExpression
+unaryLogicalOrExpression = 
+    logicalAndExpression >>= return . UnaryLogicalOrExpression
+
+restOfLogicalOrExpression :: LogicalOrExpression -> TokenParser LogicalOrExpression
+restOfLogicalOrExpression left = do
+    (try $ nonEmptyRestOfLogicalOrExpression left)
+    <|> return left
+
+nonEmptyRestOfLogicalOrExpression :: LogicalOrExpression -> TokenParser LogicalOrExpression
+nonEmptyRestOfLogicalOrExpression left = do
+    expr <- logicalOr >> logicalAndExpression
+    restOfLogicalOrExpression $ BinaryLogicalOrExpression left expr
+
+logicalAndExpression :: TokenParser LogicalAndExpression
+logicalAndExpression = do
+    left <- unaryLogicalAndExpression
+    restOfLogicalAndExpression left
+
+unaryLogicalAndExpression :: TokenParser LogicalAndExpression
+unaryLogicalAndExpression = equalityExpression >>= return . UnaryLogicalAndExpression
+
+restOfLogicalAndExpression :: LogicalAndExpression -> TokenParser LogicalAndExpression
+restOfLogicalAndExpression left = do
+    (try $ nonEmptyRestOfLogicalAndExpression left)
+    <|> return left
+
+nonEmptyRestOfLogicalAndExpression :: LogicalAndExpression -> TokenParser LogicalAndExpression
+nonEmptyRestOfLogicalAndExpression left = do
+    expr <- logicalAnd >> equalityExpression
+    restOfLogicalAndExpression $ BinaryLogicalAndExpression left expr
 
 varDeclStatement :: TokenParser Statement
 varDeclStatement = do
     varName <- var >> identifier
     expr <- assign >> additiveExpression
     return $ VarDeclStatement varName expr
+
+equalityExpression :: TokenParser EqualityExpression
+equalityExpression = do
+    left <- unaryEqualityExpression
+    restOfEqualityExpression left
+
+restOfEqualityExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfEqualityExpression left = do
+    (try $ restOfEqualsExpression left)
+    <|> (try $ restOfNotEqualsExpression left)
+    <|> return left
+
+restOfEqualsExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfEqualsExpression left = do
+    additive <- equals >> additiveExpression
+    restOfEqualityExpression $ EqualsExpression left additive
+
+restOfNotEqualsExpression :: EqualityExpression -> TokenParser EqualityExpression
+restOfNotEqualsExpression left = do
+    addititve <- notEquals >> additiveExpression
+    restOfEqualityExpression $ NotEqualsExpression left addititve
+
+unaryEqualityExpression :: TokenParser EqualityExpression
+unaryEqualityExpression = additiveExpression >>= return . UnaryEqualityExpression
 
 additiveExpression :: TokenParser AdditiveExpression
 additiveExpression = do
@@ -152,11 +213,15 @@ restOfDivMultExpression left = do
 accessExpression :: TokenParser AccessExpression
 accessExpression = do
     doubleAccessExpression
+    <|> boolAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
 
 doubleAccessExpression :: TokenParser AccessExpression
 doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
+
+boolAccessExpression :: TokenParser AccessExpression
+boolAccessExpression = boolLiteral >>= return . BoolAccessExpression
 
 identifierAccessExpression :: TokenParser AccessExpression
 identifierAccessExpression = identifier >>= return . IdentAccessExpression

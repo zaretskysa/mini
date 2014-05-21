@@ -14,6 +14,7 @@ import Parsing.Ast
 import Parsing.Parser
 import Evaluating.Eval
 import Evaluating.Value
+import Evaluating.ConversionM
 import qualified Evaluating.EnvironmentM as E
 
 type BinaryOperator = Double -> Double -> Double
@@ -60,25 +61,57 @@ evalStatement (VarDeclStatement ident expr) = do
     E.insertValue ident value
     return value
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
-    evalAdditiveExpression expr >>= evalIfThenElse
-    where
-        evalIfThenElse value
-            | NumberValue num <- value, num /= 0 = evalStatement thenStmt
-            | Just elseStmt <- mbElseStmt = evalStatement elseStmt
-            | otherwise = return UndefinedValue
+    evalIfThenElse expr thenStmt mbElseStmt
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
 evalStatement (ReturnStatement (Just expr)) = 
-    evalAdditiveExpression expr >>= evalFuncReturn
+    evalLogicalOrExpression expr >>= evalFuncReturn
+
+evalIfThenElse :: LogicalOrExpression -> Statement -> MaybeStatement -> Eval Value
+evalIfThenElse expr thenStmt mbElseStmt = do
+    evalLogicalOrExpression expr >>= toBool >>= innerEvalIfThenElse
+    where
+        innerEvalIfThenElse bool
+            | bool = evalStatement thenStmt
+            | Just elseStmt <- mbElseStmt = evalStatement elseStmt
+            | otherwise = return UndefinedValue
 
 evalFuncReturn :: Value -> Eval Value
 evalFuncReturn val = ContT $ \_ -> return val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
-evalAssignmentExpression (AdditiveAssignmentExpression expr) = evalAdditiveExpression expr
+evalAssignmentExpression (LogicalOrAssignmentExpression expr) = 
+    evalLogicalOrExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
-    value <- evalAdditiveExpression expr
+    value <- evalLogicalOrExpression expr
     E.insertValue varName value
     return value
+
+evalLogicalOrExpression :: LogicalOrExpression -> Eval Value
+evalLogicalOrExpression (UnaryLogicalOrExpression expr) = 
+    evalLogicalAndExpression expr
+evalLogicalOrExpression (BinaryLogicalOrExpression logical additive) = do
+    left <- evalLogicalOrExpression logical >>= toBool
+    right <- evalLogicalAndExpression additive >>= toBool
+    return $ BoolValue $ left || right
+
+evalLogicalAndExpression :: LogicalAndExpression -> Eval Value
+evalLogicalAndExpression (UnaryLogicalAndExpression expr) = evalEqualityExpression expr
+evalLogicalAndExpression (BinaryLogicalAndExpression logical equality) = do
+    left <- evalLogicalAndExpression logical >>= toBool
+    right <- evalEqualityExpression equality >>= toBool
+    return $ BoolValue $ left && right
+
+--TODO: remove copypaste
+evalEqualityExpression :: EqualityExpression -> Eval Value
+evalEqualityExpression (UnaryEqualityExpression expr) = evalAdditiveExpression expr
+evalEqualityExpression (EqualsExpression equal add) = do
+    left <- evalEqualityExpression equal
+    right <- evalAdditiveExpression add
+    return $ BoolValue $ left == right
+evalEqualityExpression (NotEqualsExpression equal add) = do
+    left <- evalEqualityExpression equal
+    right <- evalAdditiveExpression add
+    return $ BoolValue $ left /= right
 
 evalAdditiveExpression :: AdditiveExpression -> Eval Value
 evalAdditiveExpression (UnaryAdditiveExpression mult) = evalMultExpression mult
@@ -87,8 +120,8 @@ evalAdditiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-
 
 evalBinaryExpr :: AdditiveExpression -> MultExpression -> BinaryOperator -> Eval Value
 evalBinaryExpr expr mult op = do 
-    NumberValue left <- evalAdditiveExpression expr
-    NumberValue right <- evalMultExpression mult
+    left <- evalAdditiveExpression expr >>= toDouble
+    right <- evalMultExpression mult >>= toDouble
     return $ NumberValue $ left `op` right
 
 evalMultExpression :: MultExpression -> Eval Value
@@ -104,6 +137,7 @@ evalBinaryMultExpr mult acc op = do
 
 evalAccessExpression :: AccessExpression -> Eval Value
 evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
+evalAccessExpression (BoolAccessExpression val) = return $ BoolValue val
 evalAccessExpression (IdentAccessExpression ident) = do
     Just val <- E.lookupValue ident
     return val
