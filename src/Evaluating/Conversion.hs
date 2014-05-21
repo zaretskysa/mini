@@ -1,7 +1,9 @@
 module Evaluating.Conversion
 (
     toBoolValue,
-    toBool
+    toBool,
+    toNumberValue,
+    toDouble
 ) where
 
 import Evaluating.Value
@@ -17,3 +19,13 @@ toBool val =
     case toBoolValue val of
         BoolValue True -> True
         _ -> False
+
+toNumberValue :: Value -> Value
+toNumberValue = NumberValue . toDouble
+
+toDouble :: Value -> Double
+toDouble (NumberValue num) = num
+toDouble (BoolValue True) = 1
+toDouble (BoolValue False) = 0
+toDouble (FunctionValue _) = 0
+toDouble UndefinedValue = 0

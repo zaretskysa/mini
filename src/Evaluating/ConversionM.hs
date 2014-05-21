@@ -1,7 +1,9 @@
 module Evaluating.ConversionM
 (
     toBoolValue,
-    toBool
+    toBool,
+    toNumberValue,
+    toDouble
 ) where
 
 import Evaluating.Eval
@@ -13,3 +15,9 @@ toBoolValue val = return $ Conv.toBoolValue val
 
 toBool :: Value -> Eval Bool
 toBool val = return $ Conv.toBool val
+
+toNumberValue :: Value -> Eval Value
+toNumberValue = return . Conv.toNumberValue
+
+toDouble :: Value -> Eval Double
+toDouble = return . Conv.toDouble

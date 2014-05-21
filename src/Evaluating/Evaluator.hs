@@ -61,10 +61,10 @@ evalStatement (VarDeclStatement ident expr) = do
     E.insertValue ident value
     return value
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
-    evalAdditiveExpression expr >>= evalIfThenElse
+    evalAdditiveExpression expr >>= toBool >>= evalIfThenElse
     where
-        evalIfThenElse value
-            | NumberValue num <- value, num /= 0 = evalStatement thenStmt
+        evalIfThenElse bool
+            | bool = evalStatement thenStmt
             | Just elseStmt <- mbElseStmt = evalStatement elseStmt
             | otherwise = return UndefinedValue
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
@@ -116,8 +116,8 @@ evalAdditiveExpression (MinusExpression expr mult) = evalBinaryExpr expr mult (-
 
 evalBinaryExpr :: AdditiveExpression -> MultExpression -> BinaryOperator -> Eval Value
 evalBinaryExpr expr mult op = do 
-    NumberValue left <- evalAdditiveExpression expr
-    NumberValue right <- evalMultExpression mult
+    left <- evalAdditiveExpression expr >>= toDouble
+    right <- evalMultExpression mult >>= toDouble
     return $ NumberValue $ left `op` right
 
 evalMultExpression :: MultExpression -> Eval Value
@@ -133,6 +133,7 @@ evalBinaryMultExpr mult acc op = do
 
 evalAccessExpression :: AccessExpression -> Eval Value
 evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
+evalAccessExpression (BoolAccessExpression val) = return $ BoolValue val
 evalAccessExpression (IdentAccessExpression ident) = do
     Just val <- E.lookupValue ident
     return val

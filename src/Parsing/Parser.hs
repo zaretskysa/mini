@@ -213,11 +213,15 @@ restOfDivMultExpression left = do
 accessExpression :: TokenParser AccessExpression
 accessExpression = do
     doubleAccessExpression
+    <|> boolAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
 
 doubleAccessExpression :: TokenParser AccessExpression
 doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
+
+boolAccessExpression :: TokenParser AccessExpression
+boolAccessExpression = boolLiteral >>= return . BoolAccessExpression
 
 identifierAccessExpression :: TokenParser AccessExpression
 identifierAccessExpression = identifier >>= return . IdentAccessExpression

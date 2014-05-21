@@ -11,7 +11,7 @@ import Lexing.Token
 booleanLiteral :: Parser Token
 booleanLiteral = do
     value <- string "true" <|> string "false"
-    return $ BooleanLiteral $ stringToBool value
+    return $ BooleanLiteralToken $ stringToBool value
     where 
         stringToBool "true" = True
         stringToBool _ = False
