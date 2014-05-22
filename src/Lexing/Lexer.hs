@@ -26,6 +26,6 @@ token :: Parser Token
 token = 
         numericLiteral
     <|> try identifier
-    <|> booleanLiteral
+    <|> try booleanLiteral
     <|> keyword
     <|> punctuator

@@ -37,4 +37,6 @@ data Keyword =
     | IfKeyword
     | ElseKeyword
     | ReturnKeyword
+    | TryKeyword
+    | CatchKeyword
     deriving (Show, Eq)

@@ -52,6 +52,17 @@ statement =
     <|> varDeclStatement
     <|> ifStatement
     <|> returnStatement
+    <|> tryCatchStatement
+
+tryCatchStatement :: TokenParser Statement
+tryCatchStatement = do
+    tryBlock <- tryKeyword >> block
+    ident <- catchKeyword >> parens identifier
+    catchBlock <- block
+    return $ TryCatchStatement tryBlock $ Catch ident catchBlock
+
+block :: TokenParser Block
+block = braces $ many statement
 
 returnStatement :: TokenParser Statement
 returnStatement = do

@@ -23,7 +23,12 @@ data Statement =
     | VarDeclStatement String AdditiveExpression
     | IfStatement LogicalOrExpression Statement MaybeStatement
     | ReturnStatement MaybeLogicalOrExpression
+    | TryCatchStatement Block Catch
     deriving (Show, Eq)
+
+type Block = [Statement]
+
+data Catch = Catch Identifier Block deriving (Show, Eq)
 
 data AssignmentExpression = 
       LogicalOrAssignmentExpression LogicalOrExpression
