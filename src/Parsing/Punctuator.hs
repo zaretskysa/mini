@@ -8,49 +8,49 @@ import Parsing.TokenParser
 
 
 assign :: TokenParser Punctuator
-assign = punctuator AssignPunctuator <?> "assign"
+assign = punctuator AssignPunctuator <?> "="
 
 semicolon :: TokenParser Punctuator
-semicolon = punctuator SemicolonPunctuator <?> "semicolon"
+semicolon = punctuator SemicolonPunctuator <?> ";"
 
 comma :: TokenParser Punctuator
-comma = punctuator CommaPunctuator <?> "comma"
+comma = punctuator CommaPunctuator <?> ","
 
 openParen :: TokenParser Punctuator
-openParen = punctuator OpenParenPunctuator <?> "open paren"
+openParen = punctuator OpenParenPunctuator <?> "("
 
 closeParen :: TokenParser Punctuator
-closeParen = punctuator CloseParenPunctuator <?> "close paren"
+closeParen = punctuator CloseParenPunctuator <?> "("
 
 parens :: TokenParser a -> TokenParser a
 parens parser = between openParen closeParen parser
 
 openBrace :: TokenParser Punctuator
-openBrace = punctuator OpenBracePunctuator <?> "open brace"
+openBrace = punctuator OpenBracePunctuator <?> "{"
 
 closeBrace :: TokenParser Punctuator
-closeBrace = punctuator CloseBracePunctuator <?> "close brace"
+closeBrace = punctuator CloseBracePunctuator <?> "}"
 
 braces :: TokenParser a -> TokenParser a
 braces parser = between openBrace closeBrace parser
 
 plus :: TokenParser Punctuator
-plus = punctuator PlusPunctuator <?> "plus"
+plus = punctuator PlusPunctuator <?> "+"
 
 minus :: TokenParser Punctuator
-minus = punctuator MinusPunctuator <?> "minus"
+minus = punctuator MinusPunctuator <?> "-"
 
 multiplication :: TokenParser Punctuator
-multiplication = punctuator MultPunctuator <?> "multiplication"
+multiplication = punctuator MultPunctuator <?> "*"
 
 division :: TokenParser Punctuator
-division = punctuator MultPunctuator <?> "division"
+division = punctuator MultPunctuator <?> "/"
 
 logicalAnd :: TokenParser Punctuator
-logicalAnd = punctuator LogicalAndPunctuator <?> "and"
+logicalAnd = punctuator LogicalAndPunctuator <?> "&&"
 
 logicalOr :: TokenParser Punctuator
-logicalOr = punctuator LogicalOrPunctuator <?> "or"
+logicalOr = punctuator LogicalOrPunctuator <?> "||"
 
 equals :: TokenParser Punctuator
 equals = punctuator EqualsPunctuator <?> "=="

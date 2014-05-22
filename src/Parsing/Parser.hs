@@ -53,6 +53,7 @@ statement =
     <|> ifStatement
     <|> returnStatement
     <|> tryCatchStatement
+    <?> "statement"
 
 tryCatchStatement :: TokenParser Statement
 tryCatchStatement = do
@@ -227,6 +228,7 @@ accessExpression = do
     <|> boolAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
+    <?> "access multExpression"
 
 doubleAccessExpression :: TokenParser AccessExpression
 doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
