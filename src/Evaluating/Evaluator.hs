@@ -8,6 +8,7 @@ import Debug.Trace
 import Prelude hiding (lookup)
 import Text.Show.Pretty (ppShow)
 import Control.Monad.Cont
+import Control.Monad.Error
 
 import Types
 import Parsing.Ast
@@ -15,23 +16,25 @@ import Parsing.Parser
 import Evaluating.Eval
 import Evaluating.Value
 import Evaluating.ConversionM
-import qualified Evaluating.EnvironmentM as E
+import qualified Evaluating.EnvironmentM as Env
+import qualified Evaluating.ExceptionM as Ex
 
 type BinaryOperator = Double -> Double -> Double
 
-evalString :: String -> Value
+
+evalString :: String -> Either Exception Value
 evalString input = case parseString input of
-    Left _ -> UndefinedValue
+    Left _ -> Left StubException
     Right prog -> eval prog
 
-eval :: Program -> Value
+eval :: Program -> Either Exception Value
 eval program = 
-    let (val, env) = runEval $ evalProgram program
-    in trace (ppShow env) val
+    let (res, env) = runEval $ evalProgram program
+    in trace (ppShow env) res
 
 evalProgram :: Program -> Eval Value
 evalProgram (Program []) = return UndefinedValue
-evalProgram (Program elements) = E.enterLexEnv >> evalSourceElements elements
+evalProgram (Program elements) = Env.enterLexEnv >> evalSourceElements elements
 
 evalSourceElements :: [SourceElement] -> Eval Value
 evalSourceElements [] = return UndefinedValue
@@ -50,7 +53,7 @@ evalSourceElement (FunctionDeclSourceElement decl) =
 
 evalFunctionDecl :: FunctionDeclaration -> Eval ()
 evalFunctionDecl func@(FunctionDeclaration name _params _body) =
-    E.insertValue name $ FunctionValue func
+    Env.insertValue name $ FunctionValue func
 
 evalStatement :: Statement -> Eval Value
 evalStatement EmptyStatement = return UndefinedValue
@@ -58,7 +61,7 @@ evalStatement (BlockStatement stmts) = evalStatements stmts
 evalStatement (ExpressionStatement expr) = evalAssignmentExpression expr
 evalStatement (VarDeclStatement ident expr) = do
     value <- evalAdditiveExpression expr
-    E.insertValue ident value
+    Env.insertValue ident value
     return value
 evalStatement (IfStatement expr thenStmt mbElseStmt) =
     evalIfThenElse expr thenStmt mbElseStmt
@@ -76,14 +79,14 @@ evalIfThenElse expr thenStmt mbElseStmt = do
             | otherwise = return UndefinedValue
 
 evalFuncReturn :: Value -> Eval Value
-evalFuncReturn val = ContT $ \_ -> return val
+evalFuncReturn val = ErrorT $ ContT $ \_ -> return $ Right val
 
 evalAssignmentExpression :: AssignmentExpression -> Eval Value
 evalAssignmentExpression (LogicalOrAssignmentExpression expr) = 
     evalLogicalOrExpression expr
 evalAssignmentExpression (AssignmentOperatorExpression varName expr) = do
     value <- evalLogicalOrExpression expr
-    E.insertValue varName value
+    Env.insertValue varName value
     return value
 
 evalLogicalOrExpression :: LogicalOrExpression -> Eval Value
@@ -139,17 +142,26 @@ evalAccessExpression :: AccessExpression -> Eval Value
 evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
 evalAccessExpression (BoolAccessExpression val) = return $ BoolValue val
 evalAccessExpression (IdentAccessExpression ident) = do
-    Just val <- E.lookupValue ident
-    return val
+    res <- Env.lookupValue ident
+    case res of
+        Just val -> return val
+        Nothing -> Ex.throwNoBinding ident
 evalAccessExpression (CallAccessExpression funcName actualParams) = do
-    Just (FunctionValue (FunctionDeclaration _ formalParams body)) <- E.lookupValue funcName
-    evaluatedParams <- mapM evalAssignmentExpression actualParams
-    evalFuncCall body $ zip formalParams evaluatedParams
+    res <- Env.lookupValue funcName
+    case res of
+        Nothing -> Ex.throwNoBinding funcName
+        Just funcVal
+            | FunctionValue (FunctionDeclaration _ formalParams body) <- funcVal -> do
+                evaluatedParams <- mapM evalAssignmentExpression actualParams
+                evalFuncCall body $ zip formalParams evaluatedParams
+            | otherwise -> Ex.throwNotFunction funcName
 
 evalFuncCall :: [SourceElement] -> [(Identifier, Value)] -> Eval Value
 evalFuncCall body params = do
-    E.enterLexEnv
-    E.insertValues params
-    val <- lift $ runContT (evalSourceElements body) return
-    E.leaveLexEnv
-    return val
+    Env.enterLexEnv
+    Env.insertValues params
+    evalResult <- lift $ lift $ runContT (runErrorT (evalSourceElements body)) return
+    Env.leaveLexEnv
+    case evalResult of
+        Right value -> return value
+        Left e -> Ex.throw e
