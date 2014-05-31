@@ -9,6 +9,7 @@ import Text.ParserCombinators.Parsec hiding (tokens, token)
 import Lexing.Token
 import Lexing.NumericLiteral
 import Lexing.BooleanLiteral
+import Lexing.StringLiteral
 import Lexing.Identifier
 import Lexing.Punctuator
 import Lexing.Keyword
@@ -25,7 +26,8 @@ tokens = do
 token :: Parser Token
 token = 
         numericLiteral
+    <|> stringLiteral
     <|> try identifier
-    <|> booleanLiteral
+    <|> try booleanLiteral
     <|> keyword
     <|> punctuator

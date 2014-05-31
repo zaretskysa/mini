@@ -52,6 +52,24 @@ statement =
     <|> varDeclStatement
     <|> ifStatement
     <|> returnStatement
+    <|> tryCatchStatement
+    <|> throwStatement
+    <?> "statement"
+
+throwStatement :: TokenParser Statement
+throwStatement = do
+    expr <- throwKeyword >> logicalOrExpression
+    return $ ThrowStatement expr
+
+tryCatchStatement :: TokenParser Statement
+tryCatchStatement = do
+    tryBlock <- tryKeyword >> block
+    ident <- catchKeyword >> parens identifier
+    catchBlock <- block
+    return $ TryCatchStatement tryBlock $ Catch ident catchBlock
+
+block :: TokenParser Block
+block = braces $ many statement
 
 returnStatement :: TokenParser Statement
 returnStatement = do
@@ -214,14 +232,19 @@ accessExpression :: TokenParser AccessExpression
 accessExpression = do
     doubleAccessExpression
     <|> boolAccessExpression
+    <|> stringAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
+    <?> "access multExpression"
 
 doubleAccessExpression :: TokenParser AccessExpression
 doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
 
 boolAccessExpression :: TokenParser AccessExpression
 boolAccessExpression = boolLiteral >>= return . BoolAccessExpression
+
+stringAccessExpression :: TokenParser AccessExpression
+stringAccessExpression = stringLiteral >>= return . StringAccessExpression
 
 identifierAccessExpression :: TokenParser AccessExpression
 identifierAccessExpression = identifier >>= return . IdentAccessExpression

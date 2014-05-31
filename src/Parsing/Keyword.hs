@@ -23,3 +23,12 @@ elseKeyword = keyword ElseKeyword <?> "else"
 
 returnKeyword :: TokenParser Keyword
 returnKeyword = keyword ReturnKeyword <?> "return"
+
+tryKeyword :: TokenParser Keyword
+tryKeyword = keyword TryKeyword <?> "try"
+
+catchKeyword :: TokenParser Keyword
+catchKeyword = keyword CatchKeyword <?> "catch"
+
+throwKeyword :: TokenParser Keyword
+throwKeyword = keyword ThrowKeyword <?> "throw"

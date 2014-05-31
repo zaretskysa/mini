@@ -11,11 +11,12 @@ module Evaluating.Eval
 import Control.Monad.Identity
 import Control.Monad.State
 import Control.Monad.Cont
+import Control.Monad.Error
 
 import Evaluating.Value
 import Evaluating.Environment (Environment, empty)
 
-type Eval a = ContT Value (StateT Environment Identity) a
+type Eval a = ErrorT Value (ContT (Either Value Value) (StateT Environment Identity)) a
 
-runEval :: Eval Value -> (Value, Environment)
-runEval eval = runIdentity (runStateT (runContT eval return) empty)
+runEval :: Eval Value -> (Either Value Value, Environment)
+runEval eval = runIdentity (runStateT (runContT (runErrorT eval) return) empty)

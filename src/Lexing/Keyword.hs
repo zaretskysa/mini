@@ -18,7 +18,11 @@ keyword' =
     <|> (string "if" >> return IfKeyword)
     <|> (string "else" >> return ElseKeyword)
     <|> (string "return" >> return ReturnKeyword)
+    <|> try (string "try" >> return TryKeyword)
+    <|> (string "catch" >> return CatchKeyword)
+    <|> (string "throw" >> return ThrowKeyword)
 
 isKeyword :: String -> Bool
 isKeyword str = elem str keywords
-    where keywords = ["var", "function", "if", "else", "return"]
+    where keywords = ["var", "function", "if", "else", "return", "try", "catch", "throw"]
+
