@@ -232,6 +232,7 @@ accessExpression :: TokenParser AccessExpression
 accessExpression = do
     doubleAccessExpression
     <|> boolAccessExpression
+    <|> stringAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
     <?> "access multExpression"
@@ -241,6 +242,9 @@ doubleAccessExpression = numericLiteral >>= return . DoubleAccessExpression
 
 boolAccessExpression :: TokenParser AccessExpression
 boolAccessExpression = boolLiteral >>= return . BoolAccessExpression
+
+stringAccessExpression :: TokenParser AccessExpression
+stringAccessExpression = stringLiteral >>= return . StringAccessExpression
 
 identifierAccessExpression :: TokenParser AccessExpression
 identifierAccessExpression = identifier >>= return . IdentAccessExpression

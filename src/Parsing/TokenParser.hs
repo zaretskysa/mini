@@ -7,6 +7,7 @@ module Parsing.TokenParser
     identifier,
     numericLiteral,
     boolLiteral,
+    stringLiteral,
     anyPunctuator,
     punctuator,
     anyKeyword,
@@ -57,6 +58,13 @@ boolLiteral = try $ do
     case tok of
         BooleanLiteralToken val -> return val
         _ -> fail "boolean literal token"
+
+stringLiteral :: TokenParser String
+stringLiteral = try $ do
+    tok <- anyToken
+    case tok of
+        StringLiteralToken val -> return val
+        _ -> fail "string literal token"
 
 anyPunctuator :: TokenParser Punctuator
 anyPunctuator = try $ do

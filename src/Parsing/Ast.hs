@@ -73,6 +73,7 @@ data MultExpression =
 data AccessExpression = 
       DoubleAccessExpression Double
     | BoolAccessExpression Bool
+    | StringAccessExpression String
     | IdentAccessExpression Identifier
     | CallAccessExpression Identifier [AssignmentExpression]
     deriving (Show, Eq)

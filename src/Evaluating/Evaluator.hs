@@ -155,6 +155,7 @@ evalBinaryMultExpr mult acc op = do
 evalAccessExpression :: AccessExpression -> Eval Value
 evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
 evalAccessExpression (BoolAccessExpression val) = return $ BoolValue val
+evalAccessExpression (StringAccessExpression val) = return $ StringValue val
 evalAccessExpression (IdentAccessExpression ident) = do
     res <- Env.lookupValue ident
     case res of

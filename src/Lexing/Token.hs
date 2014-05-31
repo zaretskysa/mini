@@ -8,6 +8,7 @@ module Lexing.Token
 data Token = 
       NumericLiteralToken Double
     | BooleanLiteralToken Bool
+    | StringLiteralToken String
     | IdentifierToken String
     | PunctuatorToken Punctuator
     | KeywordToken Keyword
