@@ -1,5 +1,7 @@
 module Evaluating.Value where
 
+import Control.Monad.Error
+
 import Parsing.Ast
 
 type MaybeValue = Maybe Value
@@ -13,3 +15,7 @@ data Value =
     | FunctionValue FunctionDeclaration
     | UndefinedValue
     deriving (Show, Eq)
+
+instance Error Value where
+    noMsg = StringValue "mini_exception"
+    strMsg str = StringValue str

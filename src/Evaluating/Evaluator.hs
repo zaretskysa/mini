@@ -22,12 +22,12 @@ import qualified Evaluating.ExceptionM as Ex
 type BinaryOperator = Double -> Double -> Double
 
 
-evalString :: String -> Either Exception Value
+evalString :: String -> Either Value Value
 evalString input = case parseString input of
-    Left _ -> Left StubException
+    Left _ -> Left $ StringValue "parse_error"
     Right prog -> eval prog
 
-eval :: Program -> Either Exception Value
+eval :: Program -> Either Value Value
 eval program = 
     let (res, env) = runEval $ evalProgram program
     in trace (ppShow env) res
@@ -70,15 +70,13 @@ evalStatement (ReturnStatement (Just expr)) =
     evalLogicalOrExpression expr >>= evalFuncReturn
 evalStatement (ThrowStatement expr) = do
     val <- evalLogicalOrExpression expr
-    Ex.throwValue val
+    Ex.throw val
 evalStatement (TryCatchStatement tryBlock (Catch ident catchBlock)) = do
     evalStatements tryBlock `catchError` handler
     where 
-        exToValue (ValueException val) = val
-        exToValue _ = UndefinedValue
-        handler e = do
+        handler ex = do
             Env.enterLexEnv
-            Env.insertValue ident $ exToValue e
+            Env.insertValue ident ex
             result <- evalStatements catchBlock
             Env.leaveLexEnv
             return result
