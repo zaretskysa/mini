@@ -11,3 +11,12 @@ executable mini
     build-depends: base, parsec, pretty-show, template-haskell, placeholders, containers, mtl
     extensions: PatternGuards, TemplateHaskell
     ghc-options: -Wall -fno-warn-unused-do-bind -O0
+
+test-suite mini-unit-tests
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests/units, src
+  main-is:           MiniUnitTests.hs
+  build-depends:     base, 
+                     HUnit,
+                     HTF
+  ghc-options: -O0
