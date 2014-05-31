@@ -53,7 +53,13 @@ statement =
     <|> ifStatement
     <|> returnStatement
     <|> tryCatchStatement
+    <|> throwStatement
     <?> "statement"
+
+throwStatement :: TokenParser Statement
+throwStatement = do
+    expr <- throwKeyword >> logicalOrExpression
+    return $ ThrowStatement expr
 
 tryCatchStatement :: TokenParser Statement
 tryCatchStatement = do

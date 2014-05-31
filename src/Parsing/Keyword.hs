@@ -29,3 +29,6 @@ tryKeyword = keyword TryKeyword <?> "try"
 
 catchKeyword :: TokenParser Keyword
 catchKeyword = keyword CatchKeyword <?> "catch"
+
+throwKeyword :: TokenParser Keyword
+throwKeyword = keyword ThrowKeyword <?> "throw"

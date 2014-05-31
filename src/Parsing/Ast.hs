@@ -23,6 +23,7 @@ data Statement =
     | VarDeclStatement String AdditiveExpression
     | IfStatement LogicalOrExpression Statement MaybeStatement
     | ReturnStatement MaybeLogicalOrExpression
+    | ThrowStatement LogicalOrExpression
     | TryCatchStatement Block Catch
     deriving (Show, Eq)
 

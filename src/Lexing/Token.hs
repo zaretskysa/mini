@@ -39,4 +39,5 @@ data Keyword =
     | ReturnKeyword
     | TryKeyword
     | CatchKeyword
+    | ThrowKeyword
     deriving (Show, Eq)

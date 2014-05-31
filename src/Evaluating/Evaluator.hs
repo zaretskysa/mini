@@ -68,6 +68,20 @@ evalStatement (IfStatement expr thenStmt mbElseStmt) =
 evalStatement (ReturnStatement Nothing) = return UndefinedValue
 evalStatement (ReturnStatement (Just expr)) = 
     evalLogicalOrExpression expr >>= evalFuncReturn
+evalStatement (ThrowStatement expr) = do
+    val <- evalLogicalOrExpression expr
+    Ex.throwValue val
+evalStatement (TryCatchStatement tryBlock (Catch ident catchBlock)) = do
+    evalStatements tryBlock `catchError` handler
+    where 
+        exToValue (ValueException val) = val
+        exToValue _ = UndefinedValue
+        handler e = do
+            Env.enterLexEnv
+            Env.insertValue ident $ exToValue e
+            result <- evalStatements catchBlock
+            Env.leaveLexEnv
+            return result
 
 evalIfThenElse :: LogicalOrExpression -> Statement -> MaybeStatement -> Eval Value
 evalIfThenElse expr thenStmt mbElseStmt = do
