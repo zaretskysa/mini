@@ -19,7 +19,8 @@ tokenize input = parse tokens "MiniTokenizer" input
 
 tokens :: Parser [Token]
 tokens = do
-    toks <- sepBy token spaces
+    spaces
+    toks <- endBy token spaces
     eof
     return toks
 
