@@ -12,11 +12,11 @@ module Evaluating.Environment
 ) where
 
 import qualified Stack as S
-import qualified Evaluating.Heap as H
+import qualified Evaluating.Scope as Scope
 import Evaluating.Value
 import Types
 
-type LexEnv = H.Heap
+type LexEnv = Scope.Scope
 
 type LexicalStack = S.Stack LexEnv
 
@@ -30,7 +30,7 @@ pushLexEnv :: LexEnv -> Environment -> Environment
 pushLexEnv lexEnv (Environment stack) = Environment $ S.push lexEnv stack
 
 pushEmptyLexEnv :: Environment -> Environment
-pushEmptyLexEnv env = pushLexEnv H.empty env
+pushEmptyLexEnv env = pushLexEnv Scope.empty env
 
 popLexEnv :: Environment -> (LexEnv, Environment)
 popLexEnv (Environment stack) =
@@ -44,7 +44,7 @@ insertValue :: Identifier -> Value -> Environment -> Environment
 insertValue ident value (Environment stack)
     | S.null stack = error "Environment has no any lexical scopes"
     | otherwise =
-        let modifier = H.insert ident value
+        let modifier = Scope.insert ident value
             newStack = S.modifyTop modifier stack
         in Environment newStack
 
@@ -58,6 +58,6 @@ lookupValueInStack ident stack
     | S.null stack = Nothing
     | otherwise =
         let (env, reducedStack) = S.pop stack
-        in case H.lookup ident env of
+        in case Scope.lookup ident env of
             Nothing -> lookupValueInStack ident reducedStack
             value -> value

@@ -1,6 +1,6 @@
-module Evaluating.Heap
+module Evaluating.Scope
 (
-    Heap,
+    Scope,
     empty,
     insert,
     lookup,
@@ -14,16 +14,16 @@ import qualified Data.Map as M
 import Types
 import Evaluating.Value
 
-type Heap = Map Identifier Value
+type Scope = Map Identifier Value
 
-empty :: Heap
+empty :: Scope
 empty = M.empty
 
-insert :: Identifier -> Value -> Heap -> Heap
+insert :: Identifier -> Value -> Scope -> Scope
 insert = M.insert
 
-lookup :: Identifier -> Heap -> Maybe Value
+lookup :: Identifier -> Scope -> Maybe Value
 lookup = M.lookup
 
-delete :: Identifier -> Heap -> Heap
+delete :: Identifier -> Scope -> Scope
 delete = M.delete
