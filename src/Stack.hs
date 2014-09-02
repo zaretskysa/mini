@@ -2,7 +2,7 @@ module Stack
 (
     Stack,
 
-    empty,
+    new,
     push,
     pop,
     removeTop,
@@ -16,8 +16,8 @@ import qualified Data.List as List
 
 data Stack a = Stack [a] deriving (Show)
 
-empty :: Stack a
-empty = Stack []
+new :: Stack a
+new = Stack []
 
 push :: a -> Stack a -> Stack a
 push x (Stack xs) = Stack (x:xs)

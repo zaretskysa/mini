@@ -3,6 +3,7 @@ module Evaluating.Value where
 import Control.Monad.Error
 
 import Parsing.Ast
+import Types
 
 type MaybeValue = Maybe Value
 
@@ -14,6 +15,7 @@ data Value =
     | StringValue String
     | FunctionValue FunctionDeclaration
     | UndefinedValue
+    | RefValue Reference
     deriving (Show, Eq)
 
 instance Error Value where

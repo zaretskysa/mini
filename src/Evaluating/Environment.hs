@@ -3,61 +3,43 @@ module Evaluating.Environment
     Environment,
 
     empty,
-    pushLexEnv,
     pushEmptyLexEnv,
-    popLexEnv,
     removeTop,
+
     insertValue,
     lookupValue,
+
 ) where
 
-import qualified Stack as S
-import qualified Evaluating.Scope as Scope
+import qualified Evaluating.LexicalStack as Stack
 import Evaluating.Value
 import Types
 
-type LexEnv = Scope.Scope
+import qualified Evaluating.RefHeap as Heap
 
-type LexicalStack = S.Stack LexEnv
-
-data Environment = Environment LexicalStack
-    deriving (Show)
+data Environment = Environment 
+    { _stack :: Stack.LexicalStack
+    , _heap :: Heap.RefHeap
+    } deriving (Show)
 
 empty :: Environment
-empty = Environment $ S.empty
-
-pushLexEnv :: LexEnv -> Environment -> Environment
-pushLexEnv lexEnv (Environment stack) = Environment $ S.push lexEnv stack
+empty = Environment {_stack = Stack.new, _heap = Heap.new }
 
 pushEmptyLexEnv :: Environment -> Environment
-pushEmptyLexEnv env = pushLexEnv Scope.empty env
-
-popLexEnv :: Environment -> (LexEnv, Environment)
-popLexEnv (Environment stack) =
-    let (lexEnv, newStack) = S.pop stack
-    in (lexEnv, Environment newStack)
+pushEmptyLexEnv env =
+    let newStack = Stack.pushEmptyScope $ _stack env
+    in env {_stack = newStack}
 
 removeTop :: Environment -> Environment
-removeTop (Environment stack) = Environment $ S.removeTop stack
+removeTop env@Environment{_stack = stack, _heap = heap} =
+    let (newStack, newHeap) = Stack.destroyScope stack heap
+    in env {_stack = newStack, _heap = newHeap}
 
 insertValue :: Identifier -> Value -> Environment -> Environment
-insertValue ident value (Environment stack)
-    | S.null stack = error "Environment has no any lexical scopes"
-    | otherwise =
-        let modifier = Scope.insert ident value
-            newStack = S.modifyTop modifier stack
-        in Environment newStack
+insertValue ident value env@Environment{_stack = stack, _heap = heap} =
+    let (_ref, newStack, newHeap) = Stack.createRef ident value stack heap
+    in env {_stack = newStack, _heap = newHeap}    
 
 lookupValue :: Identifier -> Environment -> MaybeValue
-lookupValue ident (Environment stack)
-    | S.null stack = error "Environment has no any lexical scopes"
-    | otherwise = lookupValueInStack ident stack
-
-lookupValueInStack :: Identifier -> LexicalStack -> MaybeValue
-lookupValueInStack ident stack
-    | S.null stack = Nothing
-    | otherwise =
-        let (env, reducedStack) = S.pop stack
-        in case Scope.lookup ident env of
-            Nothing -> lookupValueInStack ident reducedStack
-            value -> value
+lookupValue ident Environment{_stack = stack, _heap = heap} =
+    Stack.lookupValue ident stack heap
