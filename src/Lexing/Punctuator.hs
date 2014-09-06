@@ -21,6 +21,7 @@ punctuator' = do
     <|> (char '*' >> return MultPunctuator)
     <|> (char '/' >> return DivPunctuator)
     <|> (char '=' >> return AssignPunctuator)
+    <|> (char ':' >> return ColonPunctuator)
     <|> (char ';' >> return SemicolonPunctuator)
     <|> (char ',' >> return CommaPunctuator)
     <|> (char '(' >> return OpenParenPunctuator)

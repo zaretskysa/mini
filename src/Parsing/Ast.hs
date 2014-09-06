@@ -75,5 +75,12 @@ data AccessExpression =
     | BoolAccessExpression Bool
     | StringAccessExpression String
     | IdentAccessExpression Identifier
+    | ObjectAccessExpression [PropertyAssignment]
     | CallAccessExpression Identifier [AssignmentExpression]
+    deriving (Show, Eq)
+
+data PropertyAssignment =
+      FieldPropertyAssignment Identifier AssignmentExpression
+--    | GetterPropertyAssignment -- todo: implement
+--    | SetterPropertyAssignment -- todo: implement
     deriving (Show, Eq)

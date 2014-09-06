@@ -18,6 +18,8 @@ import Evaluating.Value
 import Evaluating.ConversionM
 import qualified Evaluating.EnvironmentM as Env
 import qualified Evaluating.ExceptionM as Ex
+import Evaluating.Object (Object)
+import qualified Evaluating.Object as Obj
 
 type BinaryOperator = Double -> Double -> Double
 
@@ -154,6 +156,9 @@ evalAccessExpression :: AccessExpression -> Eval Value
 evalAccessExpression (DoubleAccessExpression num) = return $ NumberValue num
 evalAccessExpression (BoolAccessExpression val) = return $ BoolValue val
 evalAccessExpression (StringAccessExpression val) = return $ StringValue val
+evalAccessExpression (ObjectAccessExpression props) = do
+    obj <- foldM evalPropertyAssignment Obj.new props
+    return $ ObjectValue obj
 evalAccessExpression (IdentAccessExpression ident) = do
     res <- Env.lookupValue ident
     case res of
@@ -168,6 +173,11 @@ evalAccessExpression (CallAccessExpression funcName actualParams) = do
                 evaluatedParams <- mapM evalAssignmentExpression actualParams
                 evalFuncCall body $ zip formalParams evaluatedParams
             | otherwise -> Ex.throwNotFunction funcName
+
+evalPropertyAssignment :: Object -> PropertyAssignment -> Eval Object
+evalPropertyAssignment obj (FieldPropertyAssignment name expr) = do
+    val <- evalAssignmentExpression expr
+    return $ Obj.setProperty name val obj
 
 evalFuncCall :: [SourceElement] -> [(Identifier, Value)] -> Eval Value
 evalFuncCall body params = do

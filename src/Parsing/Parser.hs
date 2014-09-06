@@ -235,6 +235,7 @@ accessExpression = do
     <|> stringAccessExpression
     <|> try callAccessExpression
     <|> identifierAccessExpression
+    <|> objectAccessExpression
     <?> "access multExpression"
 
 doubleAccessExpression :: TokenParser AccessExpression
@@ -248,6 +249,17 @@ stringAccessExpression = stringLiteral >>= return . StringAccessExpression
 
 identifierAccessExpression :: TokenParser AccessExpression
 identifierAccessExpression = identifier >>= return . IdentAccessExpression
+
+objectAccessExpression :: TokenParser AccessExpression
+objectAccessExpression = do
+    props <- braces $ sepByComma propertyAssignment
+    return $ ObjectAccessExpression props
+
+propertyAssignment :: TokenParser PropertyAssignment
+propertyAssignment = do
+    name <- identifier
+    expr <- colon >> assignmentExpression
+    return $ FieldPropertyAssignment name expr
 
 callAccessExpression :: TokenParser AccessExpression
 callAccessExpression = do

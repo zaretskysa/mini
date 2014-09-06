@@ -10,6 +10,9 @@ import Parsing.TokenParser
 assign :: TokenParser Punctuator
 assign = punctuator AssignPunctuator <?> "="
 
+colon :: TokenParser Punctuator
+colon = punctuator ColonPunctuator <?> ":"
+
 semicolon :: TokenParser Punctuator
 semicolon = punctuator SemicolonPunctuator <?> ";"
 

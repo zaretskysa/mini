@@ -16,6 +16,7 @@ toBoolValue UndefinedValue = BoolValue False
 toBoolValue (RefValue _) = BoolValue True
 toBoolValue (StringValue "") = BoolValue False
 toBoolValue (StringValue _) = BoolValue True
+toBoolValue (ObjectValue _) = BoolValue True
 
 toBool :: Value -> Bool
 toBool val = 
@@ -34,3 +35,4 @@ toDouble (FunctionValue _) = 0
 toDouble UndefinedValue = 0
 toDouble (RefValue _) = 0
 toDouble (StringValue _) = 0
+toDouble (ObjectValue _) = 0

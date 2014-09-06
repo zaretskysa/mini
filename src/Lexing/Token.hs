@@ -20,6 +20,7 @@ data Punctuator =
     | MultPunctuator
     | DivPunctuator
     | AssignPunctuator
+    | ColonPunctuator
     | SemicolonPunctuator
     | CommaPunctuator
     | OpenParenPunctuator

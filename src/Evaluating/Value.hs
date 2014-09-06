@@ -4,17 +4,19 @@ import Control.Monad.Error
 
 import Parsing.Ast
 import Types
+import {-# SOURCE #-} Evaluating.Object (Object)
 
 type MaybeValue = Maybe Value
 
 type Values = [Value]
 
 data Value =
-      NumberValue Double
+      UndefinedValue
     | BoolValue Bool
+    | NumberValue Double
     | StringValue String
     | FunctionValue FunctionDeclaration
-    | UndefinedValue
+    | ObjectValue Object
     | RefValue Reference
     deriving (Show, Eq)
 
