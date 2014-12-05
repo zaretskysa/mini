@@ -42,4 +42,7 @@ data Keyword =
     | TryKeyword
     | CatchKeyword
     | ThrowKeyword
+    | ContinueKeyword
+    | BreakKeyword
+    | WhileKeyword
     deriving (Show, Eq)

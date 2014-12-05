@@ -82,6 +82,15 @@ evalStatement (TryCatchStatement tryBlock (Catch ident catchBlock)) = do
             result <- evalStatements catchBlock
             Env.leaveLexEnv
             return result
+evalStatement (LoopStatement loop) = evalLoop loop
+
+evalLoop :: Loop -> Eval Value
+evalLoop loop@(WhileLoop condition body) = do
+    res <- evalLogicalOrExpression condition >>= toBool
+    case res of
+        True -> evalStatement body >> evalLoop loop
+        False -> return UndefinedValue
+
 
 evalIfThenElse :: LogicalOrExpression -> Statement -> MaybeStatement -> Eval Value
 evalIfThenElse expr thenStmt mbElseStmt = do

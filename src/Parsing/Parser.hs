@@ -54,7 +54,28 @@ statement =
     <|> returnStatement
     <|> tryCatchStatement
     <|> throwStatement
+    <|> continueStatement
+    <|> breakStatement
+    <|> loopStatement
     <?> "statement"
+
+continueStatement :: TokenParser Statement
+continueStatement = continueKeyword >> semicolon >> return ContinueStatement
+
+breakStatement :: TokenParser Statement
+breakStatement = breakKeyword >> semicolon >> return BreakStatement
+
+loopStatement :: TokenParser Statement
+loopStatement = loop >>= return . LoopStatement
+
+loop :: TokenParser Loop
+loop = whileLoop <?> "loop"
+
+whileLoop :: TokenParser Loop
+whileLoop = do
+    condition <- whileKeyword >> parens logicalOrExpression
+    body <- statement
+    return $ WhileLoop condition body
 
 throwStatement :: TokenParser Statement
 throwStatement = do

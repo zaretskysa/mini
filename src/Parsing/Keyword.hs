@@ -32,3 +32,12 @@ catchKeyword = keyword CatchKeyword <?> "catch"
 
 throwKeyword :: TokenParser Keyword
 throwKeyword = keyword ThrowKeyword <?> "throw"
+
+continueKeyword :: TokenParser Keyword
+continueKeyword = keyword ContinueKeyword <?> "continue"
+
+breakKeyword :: TokenParser Keyword
+breakKeyword = keyword BreakKeyword <?> "break"
+
+whileKeyword :: TokenParser Keyword
+whileKeyword = keyword WhileKeyword <?> "while"

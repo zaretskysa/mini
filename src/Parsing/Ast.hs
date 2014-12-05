@@ -25,9 +25,14 @@ data Statement =
     | ReturnStatement MaybeLogicalOrExpression
     | ThrowStatement LogicalOrExpression
     | TryCatchStatement Block Catch
+    | LoopStatement Loop
+    | ContinueStatement
+    | BreakStatement
     deriving (Show, Eq)
 
 type Block = [Statement]
+
+data Loop = WhileLoop LogicalOrExpression Statement deriving (Show, Eq)
 
 data Catch = Catch Identifier Block deriving (Show, Eq)
 
